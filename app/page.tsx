@@ -344,9 +344,9 @@ export default function WritingApp() {
       setIsShaking(true)
       setTimeout(() => setIsShaking(false), 300) // Duration of the shake animation
       toast({
-        title: "Deletion Disabled",
-        description: "Keep writing! Deletion is currently turned off.",
+        title: "Deletion is off", // Simplified title
         variant: "destructive",
+        className: "tooltip-like-toast",
       })
     }
   }
@@ -358,9 +358,9 @@ export default function WritingApp() {
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 300);
       toast({
-        title: "Deletion Disabled",
-        description: "Keep writing! Replacing text is currently turned off.",
+        title: "Deletion is off", // Simplified title
         variant: "destructive",
+        className: "tooltip-like-toast",
       });
     }
   };
@@ -525,8 +525,9 @@ export default function WritingApp() {
                     const newMode = !isNoDeleteMode;
                     setIsNoDeleteMode(newMode);
                     toast({
-                      title: newMode ? "Deletion Disabled" : "Deletion Enabled",
-                      description: newMode ? "Backspace and delete are now off." : "You can now use backspace and delete.",
+                      title: newMode ? "Deletion is off" : "Deletion is on", // Concise titles
+                      className: "tooltip-like-toast", // Apply tooltip style
+                      variant: newMode ? "destructive" : "default",
                     });
                   }} className="gap-2">
                     <Eraser className="w-4 h-4" />

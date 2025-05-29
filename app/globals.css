@@ -104,3 +104,16 @@ body {
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }
+
+.tooltip-like-toast {
+  @apply p-2 pr-4 space-x-2;
+}
+
+.tooltip-like-toast div[data-radix-toast-title] {
+  @apply font-medium;
+}
+
+/* Ensure the close button is still reasonably sized and positioned */
+.tooltip-like-toast button[aria-label="Close"] {
+  @apply top-1 right-1 w-5 h-5;
+}
