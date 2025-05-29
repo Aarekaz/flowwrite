@@ -280,9 +280,9 @@ export default function WritingApp() {
         </div>
 
         {/* Bottom controls */}
-        <div className={`border-t p-3 border-border`}>
+        <div className={`border-t p-2 sm:p-3 border-border`}>
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between text-sm">
-            <div className="flex items-center gap-2 sm:gap-6 mb-2 sm:mb-0 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-6 mb-1 sm:mb-0 flex-wrap">
               <div className="flex items-center gap-2 text-gray-500">
                 <Select value={fontSize} onValueChange={setFontSize}>
                   <SelectTrigger
@@ -335,11 +335,58 @@ export default function WritingApp() {
                 >
                   <RotateCcw className="w-3 h-3" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleDarkMode}
+                  className={`h-7 px-2 text-foreground hover:bg-accent`}
+                  aria-label="Toggle dark mode"
+                >
+                  {theme === 'dark' ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-yellow-300"
+                    >
+                      <circle cx="12" cy="12" r="5"></circle>
+                      <line x1="12" y1="1" x2="12" y2="3"></line>
+                      <line x1="12" y1="21" x2="12" y2="23"></line>
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                      <line x1="1" y1="12" x2="3" y2="12"></line>
+                      <line x1="21" y1="12" x2="23" y2="12"></line>
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-gray-500"
+                    >
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                  )}
+                </Button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center flex-wrap w-full justify-between gap-2 sm:w-auto sm:justify-start sm:gap-4">
+              <div className="flex items-center flex-wrap gap-x-2 text-xs text-gray-400 min-w-0">
                 <span>
                   {wordCount} words, {charCount} chars
                 </span>
@@ -355,7 +402,7 @@ export default function WritingApp() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent`}
+                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0`}
               >
                 <Maximize className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Fullscreen</span>
@@ -365,7 +412,7 @@ export default function WritingApp() {
                 variant="ghost"
                 size="sm"
                 onClick={newEntry}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent`}
+                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0`}
               >
                 <Plus className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">New Entry</span>
@@ -451,53 +498,6 @@ export default function WritingApp() {
           </div>
         </div>
       </div>
-
-      {/* Dark mode toggle */}
-      <button
-        onClick={toggleDarkMode}
-        className="absolute bottom-4 right-4 p-2 rounded-full bg-opacity-20 hover:bg-opacity-30 transition-colors"
-        aria-label="Toggle dark mode"
-      >
-        {theme === 'dark' ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-yellow-300"
-          >
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-gray-500"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        )}
-      </button>
     </div>
   )
 }
