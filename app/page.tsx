@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter } from "lucide-react"
 import { useTheme } from "next-themes"
 
 interface WritingSession {
@@ -35,6 +35,7 @@ export default function WritingApp() {
   const [showSessionTooltip, setShowSessionTooltip] = useState<string | null>(null)
   const { theme, setTheme } = useTheme()
   const [wpm, setWpm] = useState(0)
+  const [isTypewriterMode, setIsTypewriterMode] = useState(false)
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -149,6 +150,46 @@ export default function WritingApp() {
       setWpm(0);
     }
   }, [wordCount, timeLeft]);
+
+  // Typewriter Mode Logic
+  useEffect(() => {
+    if (isTypewriterMode && textareaRef.current) {
+      const textarea = textareaRef.current;
+      console.log("--- Typewriter Mode Engaged ---");
+      console.log("Textarea clientHeight:", textarea.clientHeight);
+
+      const cursorPosition = textarea.selectionStart;
+      console.log("Cursor position:", cursorPosition);
+
+      const textUpToCursor = content.substring(0, cursorPosition);
+      const currentLineNumber = textUpToCursor.split('\n').length -1; // 0-indexed
+      console.log("Calculated currentLineNumber (0-indexed from \\n splits):", currentLineNumber);
+
+      const currentFontSize = parseFloat(fontSize) || 18;
+      const lineHeightMultiplier = 1.625; // for leading-relaxed
+      const calculatedLineHeight = currentFontSize * lineHeightMultiplier;
+      console.log("Current font size:", currentFontSize, "Calculated lineHeight:", calculatedLineHeight);
+
+      const targetScrollTop =
+        currentLineNumber * calculatedLineHeight -
+        textarea.clientHeight / 2 +
+        calculatedLineHeight / 2;
+      console.log("Target scrollTop:", targetScrollTop);
+      console.log("Current scrollTop before change:", textarea.scrollTop);
+
+      if (targetScrollTop > 0) {
+        textarea.scrollTop = targetScrollTop;
+      } else {
+        // If target is 0 or negative, and current scroll isn't already 0, reset to 0.
+        // This handles cases where user might have scrolled down manually and then typed on an early line.
+        if (textarea.scrollTop !== 0) {
+          textarea.scrollTop = 0;
+        }
+      }
+      console.log("New scrollTop after change:", textarea.scrollTop);
+      console.log("--- Typewriter Mode End of Tick ---");
+    }
+  }, [content, fontSize, isTypewriterMode, fontFamily]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -423,6 +464,16 @@ export default function WritingApp() {
               >
                 <Maximize className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Fullscreen</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsTypewriterMode(!isTypewriterMode)}
+                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95 ${isTypewriterMode ? 'bg-accent text-accent-foreground' : ''}`}
+                title={isTypewriterMode ? "Disable Typewriter Mode" : "Enable Typewriter Mode"}
+              >
+                <AlignVerticalJustifyCenter className="w-3.5 h-3.5" />
               </Button>
 
               <Button
