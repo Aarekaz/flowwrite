@@ -3,8 +3,17 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useToast } from "@/hooks/use-toast"
+import { exportToFile } from "@/lib/exportUtils"
 
 interface WritingSession {
   id: string
@@ -24,6 +33,7 @@ export default function WritingApp() {
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [timerManuallyPaused, setTimerManuallyPaused] = useState(false)
 
   const [wordCount, setWordCount] = useState(0)
   const [charCount, setCharCount] = useState(0)
@@ -36,6 +46,7 @@ export default function WritingApp() {
   const { theme, setTheme } = useTheme()
   const [wpm, setWpm] = useState(0)
   const [isTypewriterMode, setIsTypewriterMode] = useState(false)
+  const { toast } = useToast()
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -117,11 +128,12 @@ export default function WritingApp() {
       timestamp: Date.now(),
     }
     debouncedSave(sessionData)
-  }, [content, fontSize, fontFamily, timeLeft, currentSessionId, debouncedSave])
+  }, [content, fontSize, fontFamily, currentSessionId, debouncedSave])
 
   // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout
+    console.log(`[Timer Effect] isTimerRunning: ${isTimerRunning}, timeLeft: ${timeLeft}`);
     if (isTimerRunning && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((time) => time - 1)
@@ -134,10 +146,10 @@ export default function WritingApp() {
 
   // Auto-start timer when user starts typing
   useEffect(() => {
-    if (content.length > 0 && !isTimerRunning && timeLeft > 0) {
-      setIsTimerRunning(true)
+    if (content.length > 0 && !isTimerRunning && timeLeft > 0 && !timerManuallyPaused) {
+      setIsTimerRunning(true);
     }
-  }, [content, isTimerRunning, timeLeft])
+  }, [content, isTimerRunning, timeLeft, timerManuallyPaused]);
 
   // Calculate WPM
   useEffect(() => {
@@ -232,6 +244,7 @@ export default function WritingApp() {
   const resetTimer = () => {
     setTimeLeft(15 * 60)
     setIsTimerRunning(false)
+    setTimerManuallyPaused(false)
   }
 
   const saveCurrentSession = () => {
@@ -290,6 +303,31 @@ export default function WritingApp() {
 
   // Guard against rendering with null currentSessionId initially for Date parsing
   const displayDate = currentSessionId ? new Date(Number.parseInt(currentSessionId) || Date.now()) : new Date();
+  // Make sure to handle potential null or non-string currentSessionId for logging
+  const parsedSessionIdAsNumber = currentSessionId ? Number.parseInt(currentSessionId) : null;
+  console.log(`[DisplayDate Calc] currentSessionId: ${currentSessionId}, parsed as: ${parsedSessionIdAsNumber}, displayDate value: ${displayDate}, isInvalidDate: ${isNaN(displayDate.getTime())}`);
+  if (!isNaN(displayDate.getTime())) {
+    console.log(`[DisplayDate Calc] displayDate ISO: ${displayDate.toISOString()}`);
+  }
+
+  const handleExport = () => {
+    if (!content.trim()) {
+      toast({
+        title: "Nothing to Export",
+        description: "Start writing something before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const safeTitle = generateTitle(content).replace(/[^a-z0-9_-\s]/gi, '_').substring(0,50) || 'flow-write-session';
+    const filename = `${safeTitle}.txt`;
+    exportToFile(content, filename);
+    toast({
+      title: "Session Exported",
+      description: `Your writing session has been saved as ${filename}`,
+    });
+  };
 
   return (
     <div className={`min-h-screen flex relative`}>
@@ -336,155 +374,120 @@ export default function WritingApp() {
 
         {/* Bottom controls */}
         <div className={`border-t p-2 sm:p-3 border-border`}>
-          <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between text-sm">
-            <div className="flex items-center gap-2 sm:gap-6 mb-1 sm:mb-0 flex-wrap">
-              <div className="flex items-center gap-2 text-gray-500">
-                <Select value={fontSize} onValueChange={setFontSize}>
-                  <SelectTrigger
-                    className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="14">14px</SelectItem>
-                    <SelectItem value="16">16px</SelectItem>
-                    <SelectItem value="18">18px</SelectItem>
-                    <SelectItem value="20">20px</SelectItem>
-                    <SelectItem value="24">24px</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="max-w-4xl mx-auto flex items-center justify-between text-sm">
+            {/* Left Section */}
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <Select value={fontSize} onValueChange={setFontSize}>
+                <SelectTrigger
+                  className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="14">14px</SelectItem>
+                  <SelectItem value="16">16px</SelectItem>
+                  <SelectItem value="18">18px</SelectItem>
+                  <SelectItem value="20">20px</SelectItem>
+                  <SelectItem value="24">24px</SelectItem>
+                </SelectContent>
+              </Select>
 
-                <Select value={fontFamily} onValueChange={setFontFamily}>
-                  <SelectTrigger
-                    className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lato">Lato</SelectItem>
-                    <SelectItem value="arial">Arial</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                    <SelectItem value="serif">Serif</SelectItem>
-                    <SelectItem value="random">Random</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
+              <Select value={fontFamily} onValueChange={setFontFamily}>
+                <SelectTrigger
+                  className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
                 >
-                  {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                </Button>
-                <span className={`font-mono text-base font-medium text-foreground`}>
-                  {formatTime(timeLeft)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetTimer}
-                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleDarkMode}
-                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-                  aria-label="Toggle dark mode"
-                >
-                  {theme === 'dark' ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-yellow-300"
-                    >
-                      <circle cx="12" cy="12" r="5"></circle>
-                      <line x1="12" y1="1" x2="12" y2="3"></line>
-                      <line x1="12" y1="21" x2="12" y2="23"></line>
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                      <line x1="1" y1="12" x2="3" y2="12"></line>
-                      <line x1="21" y1="12" x2="23" y2="12"></line>
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-gray-500"
-                    >
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                  )}
-                </Button>
-              </div>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lato">Lato</SelectItem>
+                  <SelectItem value="arial">Arial</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="serif">Serif</SelectItem>
+                  <SelectItem value="random">Random</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex items-center flex-wrap w-full justify-between gap-2 sm:w-auto sm:justify-start sm:gap-4">
-              <div className="flex items-center flex-wrap gap-x-2 text-xs text-gray-400 min-w-0">
-                <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade">
-                  {wordCount} words, {charCount} chars
+            {/* Center Section */}
+            <div className="flex-grow flex justify-center items-center gap-x-2 text-xs text-gray-400 min-w-0 mx-2 sm:mx-4">
+              <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade whitespace-nowrap">
+                {wordCount} words, {charCount} chars
+              </span>
+              <span key={`wpm-${wpm}`} className="animate-subtle-scale-fade whitespace-nowrap">
+                {wpm} WPM
+              </span>
+              {isSaving && <span className="text-blue-500 animate-fade-in-slide-in whitespace-nowrap">Saving...</span>}
+              {lastSaved && !isSaving && (
+                <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in whitespace-nowrap"}>
+                  Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
-                <span key={`wpm-${wpm}`} className="animate-subtle-scale-fade">
-                  {wpm} WPM
-                </span>
-                {isSaving && <span className="text-blue-500 animate-fade-in-slide-in">Saving...</span>}
-                {lastSaved && !isSaving && (
-                  <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in"}>
-                    Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                )}
-              </div>
+              )}
+            </div>
 
+            {/* Right Section */}
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={toggleFullscreen}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
+                onClick={() => {
+                  if (isTimerRunning) {
+                    setTimerManuallyPaused(true);
+                  } else {
+                    setTimerManuallyPaused(false);
+                  }
+                  setIsTimerRunning(!isTimerRunning);
+                }}
+                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
               >
-                <Maximize className="w-3 h-3 mr-1" />
-                <span className="hidden sm:inline">Fullscreen</span>
+                {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
               </Button>
-
+              <span className={`font-mono text-base font-medium text-foreground`}>
+                {formatTime(timeLeft)}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsTypewriterMode(!isTypewriterMode)}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95 ${isTypewriterMode ? 'bg-accent text-accent-foreground' : ''}`}
-                title={isTypewriterMode ? "Disable Typewriter Mode" : "Enable Typewriter Mode"}
+                onClick={resetTimer}
+                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
               >
-                <AlignVerticalJustifyCenter className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={newEntry}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 group transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-              >
-                <Plus className="w-3 h-3 mr-1 group-hover:rotate-90 transition-transform duration-300 ease-in-out" />
-                <span className="hidden sm:inline">New Entry</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
+                    aria-label="Actions"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={newEntry} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    <span>New Entry</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport} className="gap-2">
+                    <FileText className="w-4 h-4" />
+                    <span>Export Session</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={toggleDarkMode} className="gap-2">
+                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    <span>{theme === 'dark' ? "Light Mode" : "Dark Mode"}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2">
+                    <Type className="w-4 h-4" />
+                    <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleFullscreen} className="gap-2">
+                    <Maximize className="w-4 h-4" />
+                    <span>Fullscreen</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
