@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
@@ -23,6 +23,7 @@ interface WritingSession {
   wordCount: number
   duration: number
   title?: string
+  isNoDeleteMode?: boolean
 }
 
 export default function WritingApp() {
@@ -47,6 +48,11 @@ export default function WritingApp() {
   const [wpm, setWpm] = useState(0)
   const [isTypewriterMode, setIsTypewriterMode] = useState(false)
   const { toast } = useToast()
+  const [isNoDeleteMode, setIsNoDeleteMode] = useState(true)
+  const [isShaking, setIsShaking] = useState(false)
+
+  // Store the initial content length to detect if text is being replaced
+  const [initialContentLength, setInitialContentLength] = useState(0);
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -81,6 +87,7 @@ export default function WritingApp() {
         loadedSessionId = session.id || null;
         setWordCount(calculateWordCount(session.content || ""))
         setCharCount((session.content || "").length)
+        setIsNoDeleteMode(session.isNoDeleteMode === undefined ? true : session.isNoDeleteMode)
       } catch (error) {
         console.error("Failed to load current session:", error)
       }
@@ -126,9 +133,10 @@ export default function WritingApp() {
       fontFamily,
       timeLeft,
       timestamp: Date.now(),
+      isNoDeleteMode,
     }
     debouncedSave(sessionData)
-  }, [content, fontSize, fontFamily, currentSessionId, debouncedSave])
+  }, [content, fontSize, fontFamily, currentSessionId, debouncedSave, isNoDeleteMode])
 
   // Timer logic
   useEffect(() => {
@@ -257,6 +265,7 @@ export default function WritingApp() {
         wordCount,
         duration: 15 * 60 - timeLeft,
         title: generateTitle(content),
+        isNoDeleteMode,
       }
 
       const updatedSessions = [session, ...sessions.filter((s) => s.id !== session.id)]
@@ -329,6 +338,33 @@ export default function WritingApp() {
     });
   };
 
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isNoDeleteMode && (e.key === "Backspace" || e.key === "Delete")) {
+      e.preventDefault()
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 300) // Duration of the shake animation
+      toast({
+        title: "Deletion Disabled",
+        description: "Keep writing! Deletion is currently turned off.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleBeforeInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const event = e as unknown as InputEvent; // Cast to InputEvent
+    if (isNoDeleteMode && event.inputType === "insertReplacementText") {
+      event.preventDefault();
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 300);
+      toast({
+        title: "Deletion Disabled",
+        description: "Keep writing! Replacing text is currently turned off.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className={`min-h-screen flex relative`}>
       {/* Main writing area */}
@@ -352,6 +388,8 @@ export default function WritingApp() {
             <textarea
               ref={textareaRef}
               value={content}
+              onKeyDown={handleTextareaKeyDown}
+              onBeforeInput={handleBeforeInput}
               onChange={(e) => {
                 const newContent = e.target.value
                 setContent(newContent)
@@ -362,6 +400,7 @@ export default function WritingApp() {
               className={`w-full h-[70vh] resize-none border-none outline-none leading-relaxed 
                 bg-background text-foreground placeholder:text-muted-foreground 
                 ${content === "" ? 'placeholder:animate-subtle-pulse' : ''}
+                ${isShaking ? 'animate-shake' : ''}
               `}
               style={{
                 fontSize: `${fontSize}px`,
@@ -481,6 +520,17 @@ export default function WritingApp() {
                   <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2">
                     <Type className="w-4 h-4" />
                     <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const newMode = !isNoDeleteMode;
+                    setIsNoDeleteMode(newMode);
+                    toast({
+                      title: newMode ? "Deletion Disabled" : "Deletion Enabled",
+                      description: newMode ? "Backspace and delete are now off." : "You can now use backspace and delete.",
+                    });
+                  }} className="gap-2">
+                    <Eraser className="w-4 h-4" />
+                    <span>{isNoDeleteMode ? "Enable" : "Disable"} Deleting</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={toggleFullscreen} className="gap-2">
                     <Maximize className="w-4 h-4" />
