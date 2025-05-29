@@ -269,6 +269,7 @@ export default function WritingApp() {
               placeholder={content === "" ? "Begin writing" : ""}
               className={`w-full h-[70vh] resize-none border-none outline-none leading-relaxed 
                 bg-background text-foreground placeholder:text-muted-foreground 
+                ${content === "" ? 'placeholder:animate-subtle-pulse' : ''}
               `}
               style={{
                 fontSize: `${fontSize}px`,
@@ -286,7 +287,7 @@ export default function WritingApp() {
               <div className="flex items-center gap-2 text-gray-500">
                 <Select value={fontSize} onValueChange={setFontSize}>
                   <SelectTrigger
-                    className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground`}
+                    className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -301,7 +302,7 @@ export default function WritingApp() {
 
                 <Select value={fontFamily} onValueChange={setFontFamily}>
                   <SelectTrigger
-                    className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground`}
+                    className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -320,7 +321,7 @@ export default function WritingApp() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className={`h-7 px-2 text-foreground hover:bg-accent`}
+                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
                 >
                   {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                 </Button>
@@ -331,7 +332,7 @@ export default function WritingApp() {
                   variant="ghost"
                   size="sm"
                   onClick={resetTimer}
-                  className={`h-7 px-2 text-foreground hover:bg-accent`}
+                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
                 >
                   <RotateCcw className="w-3 h-3" />
                 </Button>
@@ -339,7 +340,7 @@ export default function WritingApp() {
                   variant="ghost"
                   size="sm"
                   onClick={toggleDarkMode}
-                  className={`h-7 px-2 text-foreground hover:bg-accent`}
+                  className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
                   aria-label="Toggle dark mode"
                 >
                   {theme === 'dark' ? (
@@ -387,12 +388,12 @@ export default function WritingApp() {
 
             <div className="flex items-center flex-wrap w-full justify-between gap-2 sm:w-auto sm:justify-start sm:gap-4">
               <div className="flex items-center flex-wrap gap-x-2 text-xs text-gray-400 min-w-0">
-                <span>
+                <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade">
                   {wordCount} words, {charCount} chars
                 </span>
-                {isSaving && <span className="text-blue-500">Saving...</span>}
+                {isSaving && <span className="text-blue-500 animate-fade-in-slide-in">Saving...</span>}
                 {lastSaved && !isSaving && (
-                  <span className={"text-green-500 dark:text-green-400"}>
+                  <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in"}>
                     Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 )}
@@ -402,7 +403,7 @@ export default function WritingApp() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0`}
+                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
               >
                 <Maximize className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Fullscreen</span>
@@ -412,9 +413,9 @@ export default function WritingApp() {
                 variant="ghost"
                 size="sm"
                 onClick={newEntry}
-                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0`}
+                className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 group transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
               >
-                <Plus className="w-3 h-3 mr-1" />
+                <Plus className="w-3 h-3 mr-1 group-hover:rotate-90 transition-transform duration-300 ease-in-out" />
                 <span className="hidden sm:inline">New Entry</span>
               </Button>
             </div>
@@ -427,7 +428,7 @@ export default function WritingApp() {
         <div className="relative flex flex-col items-center h-[300px]">
           {/* Top marker */}
           <div
-            className={`w-6 h-1 bg-orange-400 mb-1`}
+            className={`w-6 h-1 bg-orange-400 mb-1 relative group`}
             onClick={() => {
               // Find today's sessions
               const today = new Date().toISOString().split("T")[0]
@@ -441,7 +442,7 @@ export default function WritingApp() {
           >
             {showSessionTooltip === "today" && (
               <div
-                className={`absolute left-8 top-0 bg-card shadow-md rounded-md p-2 w-48 z-10`}
+                className={`absolute left-8 top-0 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === "today" ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
               >
                 <h4 className={`text-sm font-medium text-card-foreground`}>Today</h4>
                 <div className="text-xs text-muted-foreground mt-1">
@@ -463,7 +464,7 @@ export default function WritingApp() {
                 <div
                   key={session.id}
                   style={{ top: `${position}%` }}
-                  className={`absolute w-4 h-0.5 -left-2 bg-muted-foreground cursor-pointer hover:bg-orange-400 transition-colors`}
+                  className={`absolute w-4 h-0.5 -left-2 bg-muted-foreground cursor-pointer hover:bg-orange-400 transition-colors relative group`}
                   onClick={() => loadSession(session)}
                   onMouseEnter={() => setShowSessionTooltip(session.id)}
                   onMouseLeave={() => setShowSessionTooltip(null)}
@@ -471,7 +472,7 @@ export default function WritingApp() {
                   {/* Tooltip on hover */}
                   {showSessionTooltip === session.id && (
                     <div
-                      className={`absolute left-6 top-1/2 -translate-y-1/2 bg-card shadow-md rounded-md p-2 w-48 z-10`}
+                      className={`absolute left-6 top-1/2 -translate-y-1/2 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === session.id ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                     >
                       <h4 className={`text-sm font-medium truncate text-card-foreground`}>
                         {session.title}

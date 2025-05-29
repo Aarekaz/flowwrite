@@ -83,11 +83,26 @@ const config: Config = {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+        'subtle-pulse': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        },
+        'fade-in-slide-in': {
+          '0%': { opacity: '0', transform: 'translateX(-10px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        'subtle-scale-fade': {
+          '0%': { opacity: '0.5', transform: 'scale(0.98)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+        'subtle-pulse': 'subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in-slide-in': 'fade-in-slide-in 0.3s ease-out forwards',
+        'subtle-scale-fade': 'subtle-scale-fade 0.2s ease-in-out forwards',
   		}
   	}
   },
