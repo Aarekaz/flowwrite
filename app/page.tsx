@@ -34,6 +34,7 @@ export default function WritingApp() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [showSessionTooltip, setShowSessionTooltip] = useState<string | null>(null)
   const { theme, setTheme } = useTheme()
+  const [wpm, setWpm] = useState(0)
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -136,6 +137,18 @@ export default function WritingApp() {
       setIsTimerRunning(true)
     }
   }, [content, isTimerRunning, timeLeft])
+
+  // Calculate WPM
+  useEffect(() => {
+    const initialDurationSeconds = 15 * 60; // Default 15 minutes
+    const elapsedSeconds = initialDurationSeconds - timeLeft;
+    if (elapsedSeconds > 0 && wordCount > 0) {
+      const elapsedMinutes = elapsedSeconds / 60;
+      setWpm(Math.round(wordCount / elapsedMinutes));
+    } else {
+      setWpm(0);
+    }
+  }, [wordCount, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -391,6 +404,9 @@ export default function WritingApp() {
                 <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade">
                   {wordCount} words, {charCount} chars
                 </span>
+                <span key={`wpm-${wpm}`} className="animate-subtle-scale-fade">
+                  {wpm} WPM
+                </span>
                 {isSaving && <span className="text-blue-500 animate-fade-in-slide-in">Saving...</span>}
                 {lastSaved && !isSaving && (
                   <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in"}>
@@ -442,7 +458,7 @@ export default function WritingApp() {
           >
             {showSessionTooltip === "today" && (
               <div
-                className={`absolute left-8 top-0 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === "today" ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                className={`absolute right-full mr-2 top-0 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === "today" ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
               >
                 <h4 className={`text-sm font-medium text-card-foreground`}>Today</h4>
                 <div className="text-xs text-muted-foreground mt-1">
@@ -472,7 +488,7 @@ export default function WritingApp() {
                   {/* Tooltip on hover */}
                   {showSessionTooltip === session.id && (
                     <div
-                      className={`absolute left-6 top-1/2 -translate-y-1/2 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === session.id ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                      className={`absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === session.id ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
                     >
                       <h4 className={`text-sm font-medium truncate text-card-foreground`}>
                         {session.title}
