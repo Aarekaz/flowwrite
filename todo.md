@@ -16,6 +16,7 @@
 - [ ] Manual Session Renaming
 - [ ] Archive/Delete Old Sessions
 - [ ] (Optional - Larger Scope) Cloud Sync for sessions
+- [ ] Implement Supabase session storage and cross-device sync via login
 
 ### Statistics and Progress Tracking
 - [ ] Historical Stats (streaks, averages)
