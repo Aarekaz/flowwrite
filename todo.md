@@ -1,3 +1,45 @@
+# Todo - FlowWrite App Improvements
+
+## Brainstorming & Feature Ideas
+
+### Enhanced Writing Experience & Focus
+- [ ] Focus Mode / Zen Mode (hide UI elements)
+- [ ] Writing Targets (word count, time) with visual progress
+- [ ] Soundscapes/Ambient Sounds
+- [ ] Writing Prompts section
+- [ ] Basic Markdown Support (with preview)
+- [ ] Expand font choices
+
+### Improved Session Management & Organization
+- [ ] Session Tagging/Categorization & Filtering
+- [ ] Searchable Sessions (content, title)
+- [ ] Manual Session Renaming
+- [ ] Archive/Delete Old Sessions
+- [ ] (Optional - Larger Scope) Cloud Sync for sessions
+
+### Statistics and Progress Tracking
+- [ ] Historical Stats (streaks, averages)
+- [ ] Charts for writing activity
+- [ ] Detailed per-session stats
+
+### Customization & Personalization
+- [ ] Customizable Timer Durations
+- [ ] Advanced Theme Customization (accent colors)
+- [ ] "No Delete Mode" variations
+- [ ] Customizable Keyboard Shortcuts
+
+### Technical & UI/UX Enhancements
+- [ ] More prominent/persistent autosave indicator
+- [ ] Improved Timeline UI (visual cues, pagination/scroll for many sessions)
+- [ ] Accessibility (A11y) audit and improvements
+- [ ] Performance testing for large texts
+- [ ] Robust error handling for localStorage
+
+### Code Refactoring & Maintainability
+- [ ] Componentize `app/page.tsx` (e.g., BottomControls, Timeline, WritingArea)
+- [ ] Evaluate need for more advanced state management if complexity grows
+- [ ] Encapsulate logic into more custom hooks where appropriate
+
 - Make bottom bar responsive
 + [x] Make bottom bar responsive
 - [ ] Add subtle animations and hover effects for UI fluidity (placeholder, buttons, timeline, status messages, counts)

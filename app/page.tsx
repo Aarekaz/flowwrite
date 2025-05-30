@@ -10,10 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
+import { Tree, Folder, File } from "@/components/magicui/file-tree"
 
 interface WritingSession {
   id: string
@@ -21,6 +22,7 @@ interface WritingSession {
   date: string
   timestamp: number
   wordCount: number
+  charCount: number
   duration: number
   title?: string
   isNoDeleteMode?: boolean
@@ -53,6 +55,9 @@ export default function WritingApp() {
 
   // Store the initial content length to detect if text is being replaced
   const [initialContentLength, setInitialContentLength] = useState(0);
+
+  // State for the file tree data
+  const [fileTreeElements, setFileTreeElements] = useState<any[]>([]);
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -99,6 +104,27 @@ export default function WritingApp() {
 
     // System preference for dark mode is handled by next-themes and ThemeProvider
   }, [])
+
+  // Prepare data for FileTree (Simplified: One "Sessions" folder)
+  useEffect(() => {
+    const sortedSessions = [...sessions].sort((a, b) => b.timestamp - a.timestamp); // Newest first
+
+    if (sortedSessions.length > 0) {
+      const treeElements = [
+        {
+          id: "folder-all-sessions", // Static ID for the main folder
+          name: "Sessions",
+          children: sortedSessions.map(session => ({
+            id: session.id,
+            name: session.title || "Untitled Session",
+          })),
+        }
+      ];
+      setFileTreeElements(treeElements);
+    } else {
+      setFileTreeElements([]); // Clear tree if no sessions
+    }
+  }, [sessions]);
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -256,23 +282,57 @@ export default function WritingApp() {
   }
 
   const saveCurrentSession = () => {
-    if (content.trim()) {
-      const session: WritingSession = {
-        id: currentSessionId || "",
-        content,
-        date: new Date().toISOString().split("T")[0],
-        timestamp: Date.now(),
-        wordCount,
-        duration: 15 * 60 - timeLeft,
-        title: generateTitle(content),
-        isNoDeleteMode,
+    if (!currentSessionId) return; 
+
+    const isExistingSessionInList = sessions.find(s => s.id === currentSessionId);
+    // Save if content exists OR if it's an existing session (even if content is now empty)
+    if (content.trim() || isExistingSessionInList) { 
+      let sessionToSave: WritingSession;
+
+      if (isExistingSessionInList) {
+        // Update existing session, preserve original date
+        sessionToSave = {
+          ...isExistingSessionInList, 
+          content, 
+          timestamp: Date.now(), 
+          wordCount: calculateWordCount(content),
+          charCount: content.length, // Save charCount
+          duration: 15 * 60 - timeLeft, 
+          title: generateTitle(content), 
+          isNoDeleteMode, 
+        };
+      } else {
+        // New session not yet in the sessions list.
+        // Its ID (currentSessionId) was from Date.now().toString().
+        let newSessionDate: string;
+        try {
+            newSessionDate = new Date(parseInt(currentSessionId, 10)).toISOString().split("T")[0];
+        } catch (e) {
+            newSessionDate = new Date().toISOString().split("T")[0];
+            console.error("Could not parse currentSessionId for date, using current date for new session.", e);
+        }
+        sessionToSave = {
+          id: currentSessionId,
+          content,
+          date: newSessionDate, // Date from when ID was generated
+          timestamp: Date.now(),
+          wordCount: calculateWordCount(content),
+          charCount: content.length, // Save charCount
+          duration: 15 * 60 - timeLeft,
+          title: generateTitle(content),
+          isNoDeleteMode,
+        };
       }
 
-      const updatedSessions = [session, ...sessions.filter((s) => s.id !== session.id)]
-      setSessions(updatedSessions)
-      localStorage.setItem("writing-sessions", JSON.stringify(updatedSessions))
+      const updatedSessions = [
+        sessionToSave,
+        ...sessions.filter((s) => s.id !== currentSessionId)
+      ].sort((a, b) => b.timestamp - a.timestamp); // Keep sorted by last modified
+
+      setSessions(updatedSessions);
+      localStorage.setItem("writing-sessions", JSON.stringify(updatedSessions));
     }
-  }
+  };
 
   const newEntry = () => {
     saveCurrentSession()
@@ -544,80 +604,45 @@ export default function WritingApp() {
         </div>
       </div>
 
-      {/* Fixed-height Timeline */}
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center">
-        <div className="relative flex flex-col items-center h-[300px]">
-          {/* Top marker */}
-          <div
-            className={`w-6 h-1 bg-orange-400 mb-1 relative group`}
-            onClick={() => {
-              // Find today's sessions
-              const today = new Date().toISOString().split("T")[0]
-              const todaySessions = sessions.filter((s) => s.date === today)
-              if (todaySessions.length > 0) {
-                loadSession(todaySessions[0])
-              }
-            }}
-            onMouseEnter={() => setShowSessionTooltip("today")}
-            onMouseLeave={() => setShowSessionTooltip(null)}
-          >
-            {showSessionTooltip === "today" && (
-              <div
-                className={`absolute right-full mr-2 top-0 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === "today" ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
-              >
-                <h4 className={`text-sm font-medium text-card-foreground`}>Today</h4>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {sessions.filter((s) => s.date === new Date().toISOString().split("T")[0]).length} sessions
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Timeline line - fixed height */}
-          <div className={`h-full w-px bg-border`}>
-            {/* Session markers - fixed positions */}
-            {sessions.slice(0, 10).map((session, index) => {
-              // Fixed positions with equal spacing
-              const spacing = 100 / (Math.min(10, sessions.length) + 1)
-              const position = spacing * (index + 1)
-
-              return (
-                <div
-                  key={session.id}
-                  style={{ top: `${position}%` }}
-                  className={`absolute w-4 h-0.5 -left-2 bg-muted-foreground cursor-pointer hover:bg-orange-400 transition-colors relative group`}
-                  onClick={() => loadSession(session)}
-                  onMouseEnter={() => setShowSessionTooltip(session.id)}
-                  onMouseLeave={() => setShowSessionTooltip(null)}
+      {/* File Tree Sidebar - Minimalist Floating */}
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-72 max-h-[75vh] flex flex-col overflow-hidden">
+        <div className="overflow-y-auto flex-grow">
+          {fileTreeElements.length > 0 ? (
+            <Tree
+              initialSelectedId={currentSessionId || undefined}
+              indicator
+              initialExpandedItems={["folder-all-sessions"]} // Keep the main "Sessions" folder expanded
+              className="pt-2 pb-4 px-1"
+            >
+              {fileTreeElements.map((folderElement) => (
+                <Folder
+                  key={folderElement.id}
+                  element={folderElement.name}
+                  value={folderElement.id}
                 >
-                  {/* Tooltip on hover */}
-                  {showSessionTooltip === session.id && (
-                    <div
-                      className={`absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-card shadow-md rounded-md p-2 w-48 z-10 transition-all duration-300 ease-in-out ${showSessionTooltip === session.id ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+                  {folderElement.children.map((fileElement: any) => (
+                    <File
+                      key={fileElement.id}
+                      value={fileElement.id}
+                      isSelectable={true}
+                      isSelect={currentSessionId === fileElement.id}
+                      fileIcon={<FileText className="w-4 h-4" />}
+                      onClick={() => {
+                        const sessionToLoad = sessions.find(s => s.id === fileElement.id);
+                        if (sessionToLoad) {
+                          loadSession(sessionToLoad);
+                        }
+                      }}
                     >
-                      <h4 className={`text-sm font-medium truncate text-card-foreground`}>
-                        {session.title}
-                      </h4>
-                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                        <span>{formatDate(session.date)}</span>
-                        <span>•</span>
-                        <span>{session.wordCount} words</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Bottom marker */}
-          <div className={`w-6 h-0.5 bg-muted-foreground mt-1`}></div>
-
-          {/* Session count indicator */}
-          <div className={`mt-2 flex items-center gap-1 text-xs text-muted-foreground`}>
-            <Clock className="w-3 h-3" />
-            <span>{sessions.length}</span>
-          </div>
+                      <span className="truncate text-sm">{fileElement.name}</span>
+                    </File>
+                  ))}
+                </Folder>
+              ))}
+            </Tree>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">No saved sessions yet.</p>
+          )}
         </div>
       </div>
     </div>
