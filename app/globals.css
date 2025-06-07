@@ -117,3 +117,22 @@ body {
 .tooltip-like-toast button[aria-label="Close"] {
   @apply top-1 right-1 w-5 h-5;
 }
+
+.paper-notebook {
+  background-color: transparent;
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #d4d4d8 25px);
+  background-size: 100% 25px;
+  background-position: 0 0;
+  background-repeat: repeat-y;
+  line-height: 25px !important;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.dark .paper-notebook {
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #4d4d4d 25px);
+}
+
+.paper-handwritten {
+  background-color: transparent;
+}

@@ -15,6 +15,13 @@ import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
 import { Tree, Folder, File } from "@/components/magicui/file-tree"
+import { Kalam } from 'next/font/google';
+
+const kalam = Kalam({
+  subsets: ['latin'],
+  weight: ["400", "700"],
+  variable: '--font-kalam',
+});
 
 interface WritingSession {
   id: string
@@ -26,12 +33,14 @@ interface WritingSession {
   duration: number
   title?: string
   isNoDeleteMode?: boolean
+  paperStyle?: string
 }
 
 export default function WritingApp() {
   const [content, setContent] = useState("")
   const [fontSize, setFontSize] = useState("18")
   const [fontFamily, setFontFamily] = useState("system")
+  const [paperStyle, setPaperStyle] = useState("default")
   const [timeLeft, setTimeLeft] = useState(15 * 60)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -93,6 +102,7 @@ export default function WritingApp() {
         setWordCount(calculateWordCount(session.content || ""))
         setCharCount((session.content || "").length)
         setIsNoDeleteMode(session.isNoDeleteMode === undefined ? true : session.isNoDeleteMode)
+        setPaperStyle(session.paperStyle || "default")
       } catch (error) {
         console.error("Failed to load current session:", error)
       }
@@ -160,9 +170,10 @@ export default function WritingApp() {
       timeLeft,
       timestamp: Date.now(),
       isNoDeleteMode,
+      paperStyle,
     }
     debouncedSave(sessionData)
-  }, [content, fontSize, fontFamily, currentSessionId, debouncedSave, isNoDeleteMode])
+  }, [content, fontSize, fontFamily, currentSessionId, debouncedSave, isNoDeleteMode, paperStyle])
 
   // Timer logic
   useEffect(() => {
@@ -237,6 +248,14 @@ export default function WritingApp() {
     }
   }, [content, fontSize, isTypewriterMode, fontFamily]);
 
+  useEffect(() => {
+    if (paperStyle === 'notebook' || paperStyle === 'handwritten') {
+      setFontFamily('kalam');
+    } else {
+      setFontFamily('system');
+    }
+  }, [paperStyle]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -260,6 +279,8 @@ export default function WritingApp() {
         return "Georgia, serif"
       case "random":
         return "Comic Sans MS, cursive"
+      case "kalam":
+        return "var(--font-kalam), cursive"
       default:
         return "system-ui, -apple-system, sans-serif"
     }
@@ -299,7 +320,8 @@ export default function WritingApp() {
           charCount: content.length, // Save charCount
           duration: 15 * 60 - timeLeft, 
           title: generateTitle(content), 
-          isNoDeleteMode, 
+          isNoDeleteMode,
+          paperStyle,
         };
       } else {
         // New session not yet in the sessions list.
@@ -321,6 +343,7 @@ export default function WritingApp() {
           duration: 15 * 60 - timeLeft,
           title: generateTitle(content),
           isNoDeleteMode,
+          paperStyle,
         };
       }
 
@@ -340,6 +363,7 @@ export default function WritingApp() {
     setWordCount(0)
     setCharCount(0)
     setCurrentSessionId(Date.now().toString())
+    setPaperStyle("default")
     resetTimer()
     localStorage.removeItem("current-writing-session")
     setLastSaved(null)
@@ -352,6 +376,7 @@ export default function WritingApp() {
     setWordCount(session.wordCount)
     setCharCount(session.content.length)
     setCurrentSessionId(session.id)
+    setPaperStyle(session.paperStyle || "default")
     resetTimer()
     textareaRef.current?.focus()
   }
@@ -426,11 +451,11 @@ export default function WritingApp() {
   };
 
   return (
-    <div className={`min-h-screen flex relative`}>
+    <div className={`min-h-screen flex relative ${kalam.variable}`}>
       {/* Main writing area */}
       <div className="w-full flex flex-col">
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-full max-w-4xl">
+        <div className={`flex-1 flex items-center justify-center p-8 transition-colors duration-300`}>
+          <div className={`w-full max-w-4xl paper-container ${paperStyle}`}>
             {/* Subtle timestamp */}
             <div className={`text-xs mb-4 text-foreground/60`}>
               {displayDate.toLocaleDateString("en-US", {
@@ -458,9 +483,12 @@ export default function WritingApp() {
               }}
               placeholder={content === "" ? "Begin writing" : ""}
               className={`w-full h-[70vh] resize-none border-none outline-none leading-relaxed 
-                bg-background text-foreground placeholder:text-muted-foreground 
+                text-foreground placeholder:text-muted-foreground 
                 ${content === "" ? 'placeholder:animate-subtle-pulse' : ''}
                 ${isShaking ? 'animate-shake' : ''}
+                ${paperStyle === 'default' ? 'bg-background' : ''}
+                ${paperStyle === 'notebook' ? 'paper-notebook' : ''}
+                ${paperStyle === 'handwritten' ? 'paper-handwritten' : ''}
               `}
               style={{
                 fontSize: `${fontSize}px`,
@@ -498,11 +526,25 @@ export default function WritingApp() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lato">Lato</SelectItem>
-                  <SelectItem value="arial">Arial</SelectItem>
                   <SelectItem value="system">System</SelectItem>
                   <SelectItem value="serif">Serif</SelectItem>
+                  <SelectItem value="arial">Arial</SelectItem>
+                  <SelectItem value="lato">Lato</SelectItem>
+                  <SelectItem value="kalam">Handwritten</SelectItem>
                   <SelectItem value="random">Random</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={paperStyle} onValueChange={setPaperStyle}>
+                <SelectTrigger
+                  className={`w-24 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="notebook">Notebook</SelectItem>
+                  <SelectItem value="handwritten">Plain</SelectItem>
                 </SelectContent>
               </Select>
             </div>
