@@ -10,12 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon, Minimize, FolderPlus, FilePlus } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
 import { Tree, Folder, File } from "@/components/magicui/file-tree"
 import { Kalam } from 'next/font/google';
+import { Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarFooter, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
+import { type TreeViewElement } from "@/components/magicui/file-tree";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const kalam = Kalam({
   subsets: ['latin'],
@@ -36,8 +39,26 @@ interface WritingSession {
   paperStyle?: string
 }
 
+const INITIAL_CONTENT = ``;
+const initialFiles: TreeViewElement[] = [
+  {
+    id: "1",
+    name: "Projects",
+    children: [
+      {
+        id: "2",
+        name: "example.txt",
+        children: [],
+      },
+    ],
+  },
+];
+const initialContents = {
+  "2": "This is the content of example.txt"
+};
+
 export default function WritingApp() {
-  const [content, setContent] = useState("")
+  const [content, setContent] = useState(INITIAL_CONTENT)
   const [fontSize, setFontSize] = useState("18")
   const [fontFamily, setFontFamily] = useState("system")
   const [paperStyle, setPaperStyle] = useState("default")
@@ -67,6 +88,69 @@ export default function WritingApp() {
 
   // State for the file tree data
   const [fileTreeElements, setFileTreeElements] = useState<any[]>([]);
+
+  const [isClient, setIsClient] = useState(false)
+  const [distractionFree, setDistractionFree] = useState(false);
+  const [files, setFiles] = useState(initialFiles);
+  const [fileContents, setFileContents] = useState<{ [key: string]: string }>(initialContents);
+  const [selectedId, setSelectedId] = useState<string | undefined>("2");
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [fileToRename, setFileToRename] = useState<string | null>(null);
+
+  // Load content from localStorage on mount
+  useEffect(() => {
+    setIsClient(true)
+    const savedContent = localStorage.getItem('flow-write-content');
+    if (savedContent) {
+      setContent(savedContent);
+    }
+    const savedFiles = localStorage.getItem('flow-write-files');
+    if (savedFiles) {
+      setFiles(JSON.parse(savedFiles));
+    }
+    const savedContents = localStorage.getItem('flow-write-file-contents');
+    if (savedContents) {
+      setFileContents(JSON.parse(savedContents));
+    }
+  }, []);
+
+  // Save content to localStorage
+  useEffect(() => {
+    if(isClient) {
+      localStorage.setItem('flow-write-content', content);
+    }
+  }, [content, isClient]);
+
+  // Save files structure to localStorage
+  useEffect(() => {
+    if(isClient) {
+      localStorage.setItem('flow-write-files', JSON.stringify(files));
+    }
+  }, [files, isClient]);
+
+  // Save content to fileContents state
+  useEffect(() => {
+    if(isClient && selectedId) {
+      setFileContents(prevContents => ({...prevContents, [selectedId]: content}));
+    }
+  }, [content, selectedId, isClient]);
+
+  // Save fileContents to localStorage
+  useEffect(() => {
+      if(isClient) {
+        localStorage.setItem('flow-write-file-contents', JSON.stringify(fileContents));
+      }
+  }, [fileContents, isClient]);
+
+  // When selected file changes, update the content in the editor
+  useEffect(() => {
+    if (selectedId) {
+      const fileContent = fileContents[selectedId as keyof typeof fileContents] || '';
+      setContent(fileContent);
+    } else {
+      setContent('');
+    }
+  }, [selectedId]);
 
   // Generate session title from content
   const generateTitle = (content: string) => {
@@ -450,14 +534,135 @@ export default function WritingApp() {
     }
   };
 
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  };
+
+  const handleFileSelect = (fileContent: string) => {
+    setContent(fileContent);
+  };
+
+  const handleClear = () => {
+    setContent('');
+    toast({
+      title: "Content Cleared",
+      description: "Your writing session has been cleared.",
+    });
+  };
+
+  const handleNewFile = () => {
+    const newFile: TreeViewElement = {
+      id: Date.now().toString(),
+      name: "New File",
+      children: [],
+    };
+    setFiles(prevFiles => {
+      const projectsFolder = prevFiles.find(f => f.id === "1");
+      if (projectsFolder && projectsFolder.children) {
+        projectsFolder.children.push(newFile);
+      }
+      return [...prevFiles];
+    });
+  };
+
+  const handleDeleteFile = (fileId: string) => {
+    setFiles(prevFiles => {
+      const newFiles = prevFiles.map(folder => {
+        if (folder.children) {
+          folder.children = folder.children.filter(file => file.id !== fileId);
+        }
+        return folder;
+      });
+      return newFiles;
+    });
+    setFileContents(prevContents => {
+      const newContents = { ...prevContents };
+      delete newContents[fileId];
+      return newContents;
+    });
+    if (selectedId === fileId) {
+      setSelectedId(undefined);
+    }
+  };
+
+  const handleRenameFile = (fileId: string, newName: string) => {
+    setFiles(prevFiles => {
+      const newFiles = prevFiles.map(folder => {
+        if (folder.children) {
+          const file = folder.children.find(f => f.id === fileId);
+          if (file) {
+            file.name = newName;
+          }
+        }
+        return folder;
+      });
+      return newFiles;
+    });
+    setFileToRename(null);
+  };
+
+  const confirmDelete = () => {
+    if (fileToDelete) {
+      handleDeleteFile(fileToDelete);
+      setFileToDelete(null);
+    }
+  };
+
   return (
+    <SidebarProvider>
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
+      {/* Sidebar - for file management */}
+      <Sidebar>
+        <SidebarHeader>
+          <Button variant="ghost" size="icon" onClick={handleNewFile}>
+            <FilePlus />
+          </Button>
+        </SidebarHeader>
+        <SidebarContent>
+          <Tree
+            className="p-2"
+            elements={files}
+            initialSelectedId={selectedId}
+          >
+            {files.map(element => (
+              <Folder key={element.id} element={element.name} value={element.id}>
+                {element.children?.map(file => (
+                  <File
+                    key={file.id}
+                    value={file.id}
+                    handleSelect={() => setSelectedId(file.id)}
+                    onDelete={() => setFileToDelete(file.id)}
+                    onStartRename={() => setFileToRename(file.id)}
+                    onRename={(id, newName) => handleRenameFile(id, newName)}
+                    isRenaming={fileToRename === file.id}
+                  >
+                    {file.name}
+                  </File>
+                ))}
+              </Folder>
+            ))}
+          </Tree>
+        </SidebarContent>
+        <SidebarFooter>
+          <Button variant="ghost" onClick={handleClear}>
+            <Eraser />
+            Clear
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+
       {/* Main writing area */}
       <div className="w-full flex flex-col">
+        <header className={`p-4 flex items-center justify-between transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
+          <div className="flex items-center gap-2">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold tracking-tight">FlowWrite</h1>
+          </div>
+        </header>
         <div className={`flex-1 flex items-center justify-center p-8 transition-colors duration-300`}>
           <div className={`w-full max-w-4xl paper-container ${paperStyle}`}>
             {/* Subtle timestamp */}
-            <div className={`text-xs mb-4 text-foreground/60`}>
+            <div className={`text-xs mb-4 text-foreground/60 transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
               {displayDate.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
@@ -475,12 +680,7 @@ export default function WritingApp() {
               value={content}
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
-              onChange={(e) => {
-                const newContent = e.target.value
-                setContent(newContent)
-                setCharCount(newContent.length)
-                setWordCount(calculateWordCount(newContent))
-              }}
+              onChange={handleContentChange}
               placeholder={content === "" ? "Begin writing" : ""}
               className={`w-full h-[70vh] resize-none border-none outline-none leading-relaxed 
                 text-foreground placeholder:text-muted-foreground 
@@ -644,49 +844,59 @@ export default function WritingApp() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* File Tree Sidebar - Minimalist Floating */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-72 max-h-[75vh] flex flex-col overflow-hidden">
-        <div className="overflow-y-auto flex-grow">
-          {fileTreeElements.length > 0 ? (
-            <Tree
-              initialSelectedId={currentSessionId || undefined}
-              indicator
-              initialExpandedItems={["folder-all-sessions"]} // Keep the main "Sessions" folder expanded
-              className="pt-2 pb-4 px-1"
-            >
-              {fileTreeElements.map((folderElement) => (
-                <Folder
-                  key={folderElement.id}
-                  element={folderElement.name}
-                  value={folderElement.id}
-                >
-                  {folderElement.children.map((fileElement: any) => (
-                    <File
-                      key={fileElement.id}
-                      value={fileElement.id}
-                      isSelectable={true}
-                      isSelect={currentSessionId === fileElement.id}
-                      fileIcon={<FileText className="w-4 h-4" />}
-                      onClick={() => {
-                        const sessionToLoad = sessions.find(s => s.id === fileElement.id);
-                        if (sessionToLoad) {
-                          loadSession(sessionToLoad);
-                        }
-                      }}
-                    >
-                      <span className="truncate text-sm">{fileElement.name}</span>
-                    </File>
-                  ))}
-                </Folder>
-              ))}
-            </Tree>
-          ) : (
-            <p className="text-sm text-muted-foreground mt-2">No saved sessions yet.</p>
-          )}
+        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none' : ''}`}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-foreground/60">
+                <span className="capitalize">{paperStyle}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setPaperStyle('default')}>Default</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPaperStyle('notebook')}>Notebook</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPaperStyle('handwritten')}>Handwritten</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-foreground/60">
+                <Type size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setFontSize('16')}>16px</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFontSize('18')}>18px</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFontSize('20')}>20px</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="outline" size="sm" onClick={() => exportToFile(content, 'flow-write.txt')} className="text-foreground/60">
+            <Download size={16} />
+          </Button>
         </div>
+
+        {/* Floating button to toggle distraction-free mode */}
+        <Button variant="outline" size="sm" onClick={() => setDistractionFree(!distractionFree)} className="text-foreground/60 absolute bottom-4 right-4">
+          {distractionFree ? <Minimize /> : <Maximize />}
+        </Button>
       </div>
     </div>
+    <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your file.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </SidebarProvider>
   )
 }

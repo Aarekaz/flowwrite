@@ -14,6 +14,8 @@ import React, {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { Input } from "@/components/ui/input";
 
 type TreeViewElement = {
   id: string;
@@ -288,6 +290,10 @@ const File = forwardRef<
   {
     value: string;
     handleSelect?: (id: string) => void;
+    onDelete?: (id: string) => void;
+    onStartRename?: (id: string) => void;
+    onRename?: (id: string, newName: string) => void;
+    isRenaming?: boolean;
     isSelectable?: boolean;
     isSelect?: boolean;
     fileIcon?: React.ReactNode;
@@ -298,6 +304,10 @@ const File = forwardRef<
       value,
       className,
       handleSelect,
+      onDelete,
+      onStartRename,
+      onRename,
+      isRenaming,
       isSelectable = true,
       isSelect,
       fileIcon,
@@ -308,26 +318,67 @@ const File = forwardRef<
   ) => {
     const { direction, selectedId, selectItem } = useTree();
     const isSelected = isSelect ?? selectedId === value;
+    const [renameValue, setRenameValue] = useState(children as string);
+
+    const handleRename = () => {
+      if (onRename) {
+        onRename(value, renameValue);
+      }
+    };
+
+    if (isRenaming) {
+      return (
+        <Input
+          type="text"
+          value={renameValue}
+          onChange={(e) => setRenameValue(e.target.value)}
+          onBlur={handleRename}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleRename();
+            }
+          }}
+          autoFocus
+          className="h-8"
+        />
+      );
+    }
+
     return (
-      <button
-        ref={ref}
-        type="button"
-        disabled={!isSelectable}
-        className={cn(
-          "flex w-fit items-center gap-1 rounded-md pr-1 text-sm duration-200 ease-in-out rtl:pl-1 rtl:pr-0",
-          {
-            "bg-muted": isSelected && isSelectable,
-          },
-          isSelectable ? "cursor-pointer" : "cursor-not-allowed opacity-50",
-          direction === "rtl" ? "rtl" : "ltr",
-          className,
-        )}
-        onClick={() => selectItem(value)}
-        {...props}
-      >
-        {fileIcon ?? <FileIcon className="size-4" />}
-        {children}
-      </button>
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <button
+            ref={ref}
+            type="button"
+            disabled={!isSelectable}
+            className={cn(
+              "flex w-fit items-center gap-1 rounded-md pr-1 text-sm duration-200 ease-in-out rtl:pl-1 rtl:pr-0",
+              {
+                "bg-muted": isSelected && isSelectable,
+              },
+              isSelectable ? "cursor-pointer" : "cursor-not-allowed opacity-50",
+              direction === "rtl" ? "rtl" : "ltr",
+              className,
+            )}
+            onClick={() => {
+              selectItem(value);
+              if (handleSelect) {
+                handleSelect(value);
+              }
+            }}
+            {...props}
+          >
+            {fileIcon ?? <FileIcon className="size-4" />}
+            {children}
+          </button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onSelect={() => onStartRename?.(value)}>Rename</ContextMenuItem>
+          <ContextMenuItem onClick={() => onDelete?.(value)}>
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     );
   },
 );
