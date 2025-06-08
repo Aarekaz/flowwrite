@@ -659,8 +659,8 @@ export default function WritingApp() {
             <h1 className="text-lg font-semibold tracking-tight">FlowWrite</h1>
           </div>
         </header>
-        <div className={`flex-1 flex items-center justify-center p-8 transition-colors duration-300`}>
-          <div className={`w-full max-w-4xl paper-container ${paperStyle}`}>
+        <div className={`flex-1 flex items-stretch justify-center p-8 transition-colors duration-300`}>
+          <div className={`w-full paper-container ${paperStyle} flex flex-col`}>
             {/* Subtle timestamp */}
             <div className={`text-xs mb-4 text-foreground/60 transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
               {displayDate.toLocaleDateString("en-US", {
@@ -682,14 +682,7 @@ export default function WritingApp() {
               onBeforeInput={handleBeforeInput}
               onChange={handleContentChange}
               placeholder={content === "" ? "Begin writing" : ""}
-              className={`w-full h-[70vh] resize-none border-none outline-none leading-relaxed 
-                text-foreground placeholder:text-muted-foreground 
-                ${content === "" ? 'placeholder:animate-subtle-pulse' : ''}
-                ${isShaking ? 'animate-shake' : ''}
-                ${paperStyle === 'default' ? 'bg-background' : ''}
-                ${paperStyle === 'notebook' ? 'paper-notebook' : ''}
-                ${paperStyle === 'handwritten' ? 'paper-handwritten' : ''}
-              `}
+              className={`w-full flex-1 p-2 bg-transparent focus:outline-none resize-none overflow-y-auto ${isShaking ? 'animate-shake' : ''}`}
               style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: getFontFamily(fontFamily),
