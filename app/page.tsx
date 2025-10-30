@@ -98,18 +98,27 @@ export default function WritingApp() {
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const [isFilesDialogOpen, setIsFilesDialogOpen] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [contentFadeKey, setContentFadeKey] = useState(0);
 
-  // Keyboard shortcut for opening files dialog (Cmd/Ctrl+K)
+  // Keyboard shortcuts for dialogs (Cmd/Ctrl+K to open files, Escape to close)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsFilesDialogOpen(prev => !prev);
       }
+      if (e.key === 'Escape') {
+        if (isFilesDialogOpen) {
+          setIsFilesDialogOpen(false);
+        }
+        if (showClearAllDialog) {
+          setShowClearAllDialog(false);
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isFilesDialogOpen, showClearAllDialog]);
 
   // Load content from localStorage on mount
   useEffect(() => {
@@ -156,13 +165,15 @@ export default function WritingApp() {
       }
   }, [fileContents, isClient]);
 
-  // When selected file changes, update the content in the editor
+  // When selected file changes, update the content in the editor with smooth fade
   useEffect(() => {
     if (selectedId) {
       const fileContent = fileContents[selectedId as keyof typeof fileContents] || '';
       setContent(fileContent);
+      setContentFadeKey(prev => prev + 1);
     } else {
       setContent('');
+      setContentFadeKey(prev => prev + 1);
     }
   }, [selectedId]);
 
@@ -694,13 +705,14 @@ export default function WritingApp() {
               })}
             </div>
             <textarea
+              key={contentFadeKey}
               ref={textareaRef}
               value={content}
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
               onChange={handleContentChange}
               placeholder={content === "" ? "Begin your journey..." : ""}
-              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic ${isShaking ? 'animate-shake' : ''}`}
+              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic animate-content-fade ${isShaking ? 'animate-shake' : ''}`}
               style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: getFontFamily(fontFamily),
@@ -766,7 +778,10 @@ export default function WritingApp() {
                 {isSaving && (
                   <>
                     <span className="opacity-40">•</span>
-                    <span className="text-primary/60 animate-pulse-gentle">auto-saving</span>
+                    <span className="text-primary animate-pulse-gentle flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse-gentle"></span>
+                      saving
+                    </span>
                   </>
                 )}
               </div>
