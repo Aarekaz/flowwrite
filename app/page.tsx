@@ -10,15 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon, Minimize, FolderPlus, FilePlus } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon, Minimize, FolderPlus, FilePlus, Command, Trash2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/components/ui/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
 import { Tree, Folder, File } from "@/components/magicui/file-tree"
 import { Kalam } from 'next/font/google';
-import { Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarFooter, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { type TreeViewElement } from "@/components/magicui/file-tree";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const kalam = Kalam({
   subsets: ['latin'],
@@ -59,7 +59,7 @@ const initialContents = {
 
 export default function WritingApp() {
   const [content, setContent] = useState(INITIAL_CONTENT)
-  const [fontSize, setFontSize] = useState("18")
+  const [fontSize, setFontSize] = useState("20")
   const [fontFamily, setFontFamily] = useState("system")
   const [paperStyle, setPaperStyle] = useState("default")
   const [timeLeft, setTimeLeft] = useState(15 * 60)
@@ -96,6 +96,29 @@ export default function WritingApp() {
   const [selectedId, setSelectedId] = useState<string | undefined>("2");
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
+  const [isFilesDialogOpen, setIsFilesDialogOpen] = useState(false);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [contentFadeKey, setContentFadeKey] = useState(0);
+
+  // Keyboard shortcuts for dialogs (Cmd/Ctrl+K to open files, Escape to close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsFilesDialogOpen(prev => !prev);
+      }
+      if (e.key === 'Escape') {
+        if (isFilesDialogOpen) {
+          setIsFilesDialogOpen(false);
+        }
+        if (showClearAllDialog) {
+          setShowClearAllDialog(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFilesDialogOpen, showClearAllDialog]);
 
   // Load content from localStorage on mount
   useEffect(() => {
@@ -142,13 +165,15 @@ export default function WritingApp() {
       }
   }, [fileContents, isClient]);
 
-  // When selected file changes, update the content in the editor
+  // When selected file changes, update the content in the editor with smooth fade
   useEffect(() => {
     if (selectedId) {
       const fileContent = fileContents[selectedId as keyof typeof fileContents] || '';
       setContent(fileContent);
+      setContentFadeKey(prev => prev + 1);
     } else {
       setContent('');
+      setContentFadeKey(prev => prev + 1);
     }
   }, [selectedId]);
 
@@ -550,6 +575,22 @@ export default function WritingApp() {
     });
   };
 
+  const handleClearAll = () => {
+    // Clear all files and content
+    setFiles(initialFiles);
+    setFileContents(initialContents);
+    setSelectedId("2");
+    setContent(initialContents["2"]);
+    localStorage.removeItem('flow-write-files');
+    localStorage.removeItem('flow-write-file-contents');
+    localStorage.removeItem('flow-write-content');
+    setShowClearAllDialog(false);
+    toast({
+      title: "All Content Cleared",
+      description: "All files and content have been reset.",
+    });
+  };
+
   const handleNewFile = () => {
     const newFile: TreeViewElement = {
       id: Date.now().toString(),
@@ -609,80 +650,69 @@ export default function WritingApp() {
   };
 
   return (
-    <SidebarProvider>
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
-      {/* Sidebar - for file management */}
-      <Sidebar>
-        <SidebarHeader>
-          <Button variant="ghost" size="icon" onClick={handleNewFile}>
-            <FilePlus />
-          </Button>
-        </SidebarHeader>
-        <SidebarContent>
-          <Tree
-            className="p-2"
-            elements={files}
-            initialSelectedId={selectedId}
-          >
-            {files.map(element => (
-              <Folder key={element.id} element={element.name} value={element.id}>
-                {element.children?.map(file => (
-                  <File
-                    key={file.id}
-                    value={file.id}
-                    handleSelect={() => setSelectedId(file.id)}
-                    onDelete={() => setFileToDelete(file.id)}
-                    onStartRename={() => setFileToRename(file.id)}
-                    onRename={(id, newName) => handleRenameFile(id, newName)}
-                    isRenaming={fileToRename === file.id}
-                  >
-                    {file.name}
-                  </File>
-                ))}
-              </Folder>
-            ))}
-          </Tree>
-        </SidebarContent>
-        <SidebarFooter>
-          <Button variant="ghost" onClick={handleClear}>
-            <Eraser />
-            Clear
-          </Button>
-        </SidebarFooter>
-      </Sidebar>
-
-      {/* Main writing area */}
-      <div className="w-full flex flex-col">
-        <header className={`p-4 flex items-center justify-between transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
-          <div className="flex items-center gap-2">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold tracking-tight">FlowWrite</h1>
+      {/* Revolutionary immersive writing space */}
+      <div className="w-full flex flex-col relative group">
+        {/* Sophisticated floating header - gracefully appears on hover */}
+        <header className={`fixed top-0 left-0 right-0 z-30 px-10 py-6 flex items-center justify-between transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-2'}`}>
+          <div className="flex items-center gap-6 backdrop-blur-2xl bg-card/70 px-6 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFilesDialogOpen(true)}
+              className="h-9 px-3 hover:bg-accent/50 transition-all rounded-lg flex items-center gap-2"
+              title="Files (⌘K)"
+            >
+              <Command className="h-4 w-4 opacity-70" />
+              <span className="text-xs font-medium tracking-[0.15em] text-foreground/70 uppercase">Files</span>
+            </Button>
+            <h1 className="text-sm font-medium tracking-[0.25em] text-foreground/70 uppercase">Flow</h1>
+          </div>
+          <div className="flex items-center gap-3 backdrop-blur-2xl bg-card/70 px-4 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDarkMode}
+              className="h-9 w-9 p-0 hover:bg-accent/50 transition-all rounded-lg"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4 opacity-70" /> : <Moon className="h-4 w-4 opacity-70" />}
+            </Button>
           </div>
         </header>
-        <div className={`flex-1 flex items-stretch justify-center p-8 transition-colors duration-300`}>
-          <div className={`w-full paper-container ${paperStyle} flex flex-col`}>
-            {/* Subtle timestamp */}
-            <div className={`text-xs mb-4 text-foreground/60 transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
+
+        {/* Minimal floating clear all button - appears on hover */}
+        <div className={`fixed bottom-24 right-8 z-40 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowClearAllDialog(true)}
+            className="h-10 w-10 p-0 backdrop-blur-2xl bg-card/70 border border-border/40 hover:bg-destructive/10 hover:border-destructive/30 rounded-xl shadow-lg shadow-black/5 transition-all"
+            title="Clear All Content"
+          >
+            <Trash2 className="h-4 w-4 opacity-60" />
+          </Button>
+        </div>
+
+        {/* Immersive writing canvas with stunning depth */}
+        <div className="flex-1 flex items-center justify-center px-12 py-20 transition-all duration-700">
+          <div className={`w-full max-w-6xl paper-container paper-${paperStyle} flex flex-col px-20 md:px-28 lg:px-36 py-20 min-h-[75vh] animate-fade-in shadow-2xl shadow-black/5 rounded-3xl`}>
+            {/* Elegant timestamp with smooth transitions */}
+            <div className={`text-[11px] mb-16 text-muted-foreground/60 font-medium tracking-[0.2em] uppercase transition-all duration-500 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-40'}`}>
               {displayDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
                 month: "long",
                 day: "numeric",
-              })}
-              {" · "}
-              {displayDate.toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
+                year: "numeric",
               })}
             </div>
             <textarea
+              key={contentFadeKey}
               ref={textareaRef}
               value={content}
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
               onChange={handleContentChange}
-              placeholder={content === "" ? "Begin writing" : ""}
-              className={`w-full flex-1 p-2 bg-transparent focus:outline-none resize-none overflow-y-auto ${isShaking ? 'animate-shake' : ''}`}
+              placeholder={content === "" ? "Begin your journey..." : ""}
+              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic animate-content-fade ${isShaking ? 'animate-shake' : ''}`}
               style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: getFontFamily(fontFamily),
@@ -692,204 +722,237 @@ export default function WritingApp() {
           </div>
         </div>
 
-        {/* Bottom controls */}
-        <div className={`border-t p-2 sm:p-3 border-border`}>
-          <div className="max-w-4xl mx-auto flex items-center justify-between text-sm">
-            {/* Left Section */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <Select value={fontSize} onValueChange={setFontSize}>
-                <SelectTrigger
-                  className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="14">14px</SelectItem>
-                  <SelectItem value="16">16px</SelectItem>
-                  <SelectItem value="18">18px</SelectItem>
-                  <SelectItem value="20">20px</SelectItem>
-                  <SelectItem value="24">24px</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Luxurious floating bottom bar - appears elegantly on hover */}
+        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-8 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+          <div className="backdrop-blur-2xl bg-card/80 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 px-8 py-4 max-w-7xl mx-auto">
+            <div className="flex items-center justify-between gap-8">
+              {/* Refined style controls */}
+              <div className="flex items-center gap-3">
+                <Select value={fontSize} onValueChange={setFontSize}>
+                  <SelectTrigger className="w-16 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="14">14</SelectItem>
+                    <SelectItem value="16">16</SelectItem>
+                    <SelectItem value="18">18</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="22">22</SelectItem>
+                    <SelectItem value="24">24</SelectItem>
+                    <SelectItem value="26">26</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={fontFamily} onValueChange={setFontFamily}>
-                <SelectTrigger
-                  className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="serif">Serif</SelectItem>
-                  <SelectItem value="arial">Arial</SelectItem>
-                  <SelectItem value="lato">Lato</SelectItem>
-                  <SelectItem value="kalam">Handwritten</SelectItem>
-                  <SelectItem value="random">Random</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={fontFamily} onValueChange={setFontFamily}>
+                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="serif">Serif</SelectItem>
+                    <SelectItem value="arial">Arial</SelectItem>
+                    <SelectItem value="lato">Lato</SelectItem>
+                    <SelectItem value="kalam">Handwritten</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={paperStyle} onValueChange={setPaperStyle}>
-                <SelectTrigger
-                  className={`w-24 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="notebook">Notebook</SelectItem>
-                  <SelectItem value="handwritten">Plain</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <Select value={paperStyle} onValueChange={setPaperStyle}>
+                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Modern</SelectItem>
+                    <SelectItem value="notebook">Notebook</SelectItem>
+                    <SelectItem value="handwritten">Classic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Center Section */}
-            <div className="flex-grow flex justify-center items-center gap-x-2 text-xs text-gray-400 min-w-0 mx-2 sm:mx-4">
-              <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade whitespace-nowrap">
-                {wordCount} words, {charCount} chars
-              </span>
-              <span key={`wpm-${wpm}`} className="animate-subtle-scale-fade whitespace-nowrap">
-                {wpm} WPM
-              </span>
-              {isSaving && <span className="text-blue-500 animate-fade-in-slide-in whitespace-nowrap">Saving...</span>}
-              {lastSaved && !isSaving && (
-                <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in whitespace-nowrap"}>
-                  Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
-              )}
-            </div>
+              {/* Beautiful stats display */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground/70 font-medium tracking-wider px-6 py-2 bg-accent/30 rounded-xl">
+                <span className="tabular-nums">{wordCount} words</span>
+                <span className="opacity-40">•</span>
+                <span className="tabular-nums">{charCount} chars</span>
+                <span className="opacity-40">•</span>
+                <span className="tabular-nums">{wpm} wpm</span>
+                {isSaving && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="text-primary animate-pulse-gentle flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse-gentle"></span>
+                      saving
+                    </span>
+                  </>
+                )}
+              </div>
 
-            {/* Right Section */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (isTimerRunning) {
-                    setTimerManuallyPaused(true);
-                  } else {
-                    setTimerManuallyPaused(false);
-                  }
-                  setIsTimerRunning(!isTimerRunning);
-                }}
-                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-              >
-                {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-              </Button>
-              <span className={`font-mono text-base font-medium text-foreground`}>
-                {formatTime(timeLeft)}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetTimer}
-                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-              >
-                <RotateCcw className="w-3 h-3" />
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              {/* Sophisticated action controls */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/40 border border-border/30">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                    aria-label="Actions"
+                    onClick={() => {
+                      if (isTimerRunning) {
+                        setTimerManuallyPaused(true);
+                      } else {
+                        setTimerManuallyPaused(false);
+                      }
+                      setIsTimerRunning(!isTimerRunning);
+                    }}
+                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
                   >
-                    <MoreHorizontal className="w-4 h-4" />
+                    {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={newEntry} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    <span>New Entry</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="gap-2">
-                    <FileText className="w-4 h-4" />
-                    <span>Export Session</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleDarkMode} className="gap-2">
-                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                    <span>{theme === 'dark' ? "Light Mode" : "Dark Mode"}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2">
-                    <Type className="w-4 h-4" />
-                    <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    const newMode = !isNoDeleteMode;
-                    setIsNoDeleteMode(newMode);
-                    toast({
-                      title: newMode ? "Deletion is off" : "Deletion is on", // Concise titles
-                      className: "tooltip-like-toast", // Apply tooltip style
-                      variant: newMode ? "destructive" : "default",
-                    });
-                  }} className="gap-2">
-                    <Eraser className="w-4 h-4" />
-                    <span>{isNoDeleteMode ? "Enable" : "Disable"} Deleting</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={toggleFullscreen} className="gap-2">
-                    <Maximize className="w-4 h-4" />
-                    <span>Fullscreen</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <span className="font-mono text-xs font-medium min-w-[3rem] text-center opacity-80 tabular-nums">
+                    {formatTime(timeLeft)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetTimer}
+                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 hover:bg-accent/40 rounded-lg"
+                      aria-label="Menu"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={newEntry} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Plus className="w-4 h-4" />
+                      <span>New Session</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExport} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <FileText className="w-4 h-4" />
+                      <span>Export</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Type className="w-4 h-4" />
+                      <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const newMode = !isNoDeleteMode;
+                      setIsNoDeleteMode(newMode);
+                      toast({
+                        title: newMode ? "Deletion disabled" : "Deletion enabled",
+                        className: "tooltip-like-toast",
+                        variant: newMode ? "destructive" : "default",
+                      });
+                    }} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Eraser className="w-4 h-4" />
+                      <span>{isNoDeleteMode ? "Enable" : "Disable"} Delete</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={toggleFullscreen} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Maximize className="w-4 h-4" />
+                      <span>Fullscreen</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDistractionFree(!distractionFree)} className="gap-2 cursor-pointer text-sm py-2.5">
+                      {distractionFree ? <Minimize className="w-4 h-4" /> : <AlignVerticalJustifyCenter className="w-4 h-4" />}
+                      <span>{distractionFree ? "Show Interface" : "Focus Mode"}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none' : ''}`}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-foreground/60">
-                <span className="capitalize">{paperStyle}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setPaperStyle('default')}>Default</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPaperStyle('notebook')}>Notebook</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPaperStyle('handwritten')}>Handwritten</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-foreground/60">
-                <Type size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFontSize('16')}>16px</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFontSize('18')}>18px</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFontSize('20')}>20px</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="outline" size="sm" onClick={() => exportToFile(content, 'flow-write.txt')} className="text-foreground/60">
-            <Download size={16} />
-          </Button>
-        </div>
-
-        {/* Floating button to toggle distraction-free mode */}
-        <Button variant="outline" size="sm" onClick={() => setDistractionFree(!distractionFree)} className="text-foreground/60 absolute bottom-4 right-4">
-          {distractionFree ? <Minimize /> : <Maximize />}
-        </Button>
       </div>
+
+      {/* Elegant Files Dialog */}
+      <Dialog open={isFilesDialogOpen} onOpenChange={setIsFilesDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl backdrop-blur-2xl bg-card/95 border-border/50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-medium tracking-[0.15em] uppercase text-foreground/80">Files</DialogTitle>
+          </DialogHeader>
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-medium text-muted-foreground tracking-[0.15em] uppercase">Projects</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewFile}
+                className="h-8 px-3 hover:bg-accent/60 transition-all rounded-lg text-xs"
+              >
+                <FilePlus className="h-4 w-4 mr-2" />
+                New File
+              </Button>
+            </div>
+            <div className="border border-border/40 rounded-2xl p-4 bg-background/40 max-h-[400px] overflow-y-auto zen-scroll">
+              <Tree
+                className="p-2"
+                elements={files}
+                initialSelectedId={selectedId}
+              >
+                {files.map(element => (
+                  <Folder key={element.id} element={element.name} value={element.id}>
+                    {element.children?.map(file => (
+                      <File
+                        key={file.id}
+                        value={file.id}
+                        handleSelect={() => {
+                          setSelectedId(file.id);
+                          setIsFilesDialogOpen(false);
+                        }}
+                        onDelete={() => setFileToDelete(file.id)}
+                        onStartRename={() => setFileToRename(file.id)}
+                        onRename={(id, newName) => handleRenameFile(id, newName)}
+                        isRenaming={fileToRename === file.id}
+                      >
+                        {file.name}
+                      </File>
+                    ))}
+                  </Folder>
+                ))}
+              </Tree>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete File Confirmation Dialog */}
+      <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Your file will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-xl">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear All Content Confirmation Dialog */}
+      <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all content?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset all files and content to their initial state. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearAll} className="rounded-xl bg-destructive hover:bg-destructive/90">Clear All</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-    <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your file.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-    </SidebarProvider>
   )
 }

@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 @layer utilities {
@@ -14,73 +17,75 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    /* Ultra-refined light mode - sophisticated and airy */
+    --background: 42 45% 98%;
+    --foreground: 240 8% 12%;
+    --card: 42 40% 99%;
+    --card-foreground: 240 8% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --popover-foreground: 240 8% 12%;
+    --primary: 240 6% 18%;
+    --primary-foreground: 42 45% 98%;
+    --secondary: 42 30% 94%;
+    --secondary-foreground: 240 6% 18%;
+    --muted: 42 25% 92%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 42 35% 88%;
+    --accent-foreground: 240 6% 18%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 20% 88%;
+    --input: 42 20% 88%;
+    --ring: 240 6% 18%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.75rem;
+    --sidebar-background: 42 35% 96%;
+    --sidebar-foreground: 240 6% 18%;
+    --sidebar-primary: 240 6% 18%;
+    --sidebar-primary-foreground: 42 45% 98%;
+    --sidebar-accent: 42 30% 91%;
+    --sidebar-accent-foreground: 240 6% 18%;
+    --sidebar-border: 42 20% 86%;
+    --sidebar-ring: 240 6% 18%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* Deep, luxurious dark mode with subtle warmth */
+    --background: 240 8% 6%;
+    --foreground: 42 30% 92%;
+    --card: 240 7% 8%;
+    --card-foreground: 42 30% 92%;
+    --popover: 240 8% 9%;
+    --popover-foreground: 42 30% 92%;
+    --primary: 42 35% 88%;
+    --primary-foreground: 240 8% 6%;
+    --secondary: 240 6% 12%;
+    --secondary-foreground: 42 30% 92%;
+    --muted: 240 5% 16%;
+    --muted-foreground: 42 15% 58%;
+    --accent: 240 5% 18%;
+    --accent-foreground: 42 30% 92%;
+    --destructive: 0 65% 48%;
+    --destructive-foreground: 42 30% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 42 35% 88%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 240 7% 8%;
+    --sidebar-foreground: 42 25% 86%;
+    --sidebar-primary: 42 35% 88%;
+    --sidebar-primary-foreground: 240 8% 6%;
+    --sidebar-accent: 240 5% 13%;
+    --sidebar-accent-foreground: 42 30% 92%;
+    --sidebar-border: 240 4% 14%;
+    --sidebar-ring: 42 35% 88%;
   }
 }
 
@@ -93,16 +98,106 @@ body {
   }
 }
 
+/* Exquisite, smooth animations with depth */
 @keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  50% { transform: translateX(2px); }
-  75% { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes contentFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
 }
 
 .animate-shake {
-  animation: shake 0.3s ease-in-out;
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-pulse-gentle {
+  animation: gentlePulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-float-in {
+  animation: floatIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-content-fade {
+  animation: contentFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tooltip-like-toast {
@@ -113,26 +208,172 @@ body {
   @apply font-medium;
 }
 
-/* Ensure the close button is still reasonably sized and positioned */
 .tooltip-like-toast button[aria-label="Close"] {
   @apply top-1 right-1 w-5 h-5;
 }
 
-.paper-notebook {
-  background-color: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #d4d4d8 25px);
-  background-size: 100% 25px;
-  background-position: 0 0;
-  background-repeat: repeat-y;
-  line-height: 25px !important;
-  padding-top: 5px;
-  padding-bottom: 5px;
+/* Stunning paper styles with depth and sophistication */
+.paper-container {
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
-.dark .paper-notebook {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #4d4d4d 25px);
+.paper-default {
+  background:
+    radial-gradient(circle at 20% 20%, hsl(var(--accent) / 0.15), transparent 50%),
+    radial-gradient(circle at 80% 80%, hsl(var(--accent) / 0.1), transparent 50%),
+    hsl(var(--background));
+  border-radius: 0;
+}
+
+.paper-notebook {
+  background-color: hsl(var(--card));
+  background-image:
+    linear-gradient(to right, hsl(var(--primary) / 0.08) 1px, transparent 1px),
+    repeating-linear-gradient(to bottom, transparent, transparent 31px, hsl(var(--border) / 0.3) 32px);
+  background-size: 100% 32px, 100% 32px;
+  background-position: 56px 0, 0 0;
+  line-height: 32px !important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 0;
+  box-shadow: inset 0 0 80px hsl(var(--accent) / 0.08);
 }
 
 .paper-handwritten {
-  background-color: transparent;
+  background:
+    radial-gradient(ellipse at 30% 40%, hsl(var(--accent) / 0.12), transparent 60%),
+    radial-gradient(ellipse at 70% 60%, hsl(var(--muted) / 0.15), transparent 55%),
+    hsl(var(--card));
+  border-radius: 0;
+  box-shadow: inset 0 0 100px hsl(var(--accent) / 0.06);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Remove transitions from textarea for better performance */
+textarea {
+  transition: none !important;
+}
+
+/* Elegant custom scrollbar with refined aesthetics */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(var(--muted)), hsl(var(--muted-foreground) / 0.3));
+  border-radius: 8px;
+  border: 2px solid hsl(var(--background));
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, hsl(var(--muted-foreground) / 0.5), hsl(var(--muted-foreground) / 0.4));
+}
+
+/* Ultra-minimal zen scrollbar for writing area */
+.zen-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted) / 0.6) transparent;
+}
+
+.zen-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.zen-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.zen-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.zen-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+  background-clip: padding-box;
+}
+
+/* Focus indicator for subtle attention */
+.focus-indicator {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Selection styling for refined aesthetics */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+::-moz-selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+/* Elegant glass morphism effects */
+.glass-effect {
+  backdrop-filter: blur(20px) saturate(180%);
+  background: hsl(var(--background) / 0.75);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* Smooth focus rings for accessibility */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.5);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Beautiful gradient text effect */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.6));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtle shadows for depth */
+.shadow-elegant {
+  box-shadow:
+    0 1px 2px 0 hsl(var(--foreground) / 0.05),
+    0 4px 8px -2px hsl(var(--foreground) / 0.1);
+}
+
+.shadow-elegant-lg {
+  box-shadow:
+    0 2px 4px 0 hsl(var(--foreground) / 0.06),
+    0 8px 16px -4px hsl(var(--foreground) / 0.12),
+    0 20px 40px -8px hsl(var(--foreground) / 0.08);
+}
+
+/* Refined button hover effects */
+button, .button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active, .button:active {
+  transform: scale(0.97);
+}
+
+/* Smooth page transitions */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
