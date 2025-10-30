@@ -59,7 +59,7 @@ const initialContents = {
 
 export default function WritingApp() {
   const [content, setContent] = useState(INITIAL_CONTENT)
-  const [fontSize, setFontSize] = useState("18")
+  const [fontSize, setFontSize] = useState("20")
   const [fontFamily, setFontFamily] = useState("system")
   const [paperStyle, setPaperStyle] = useState("default")
   const [timeLeft, setTimeLeft] = useState(15 * 60)
@@ -612,13 +612,21 @@ export default function WritingApp() {
     <SidebarProvider>
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
       {/* Sidebar - for file management */}
-      <Sidebar>
-        <SidebarHeader>
-          <Button variant="ghost" size="icon" onClick={handleNewFile}>
-            <FilePlus />
-          </Button>
+      <Sidebar className="border-r-0 shadow-sm">
+        <SidebarHeader className="border-b border-border/50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">Files</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNewFile}
+              className="h-8 w-8 hover:bg-accent/50"
+            >
+              <FilePlus className="h-4 w-4" />
+            </Button>
+          </div>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="px-2">
           <Tree
             className="p-2"
             elements={files}
@@ -643,26 +651,43 @@ export default function WritingApp() {
             ))}
           </Tree>
         </SidebarContent>
-        <SidebarFooter>
-          <Button variant="ghost" onClick={handleClear}>
-            <Eraser />
+        <SidebarFooter className="border-t border-border/50 p-3">
+          <Button
+            variant="ghost"
+            onClick={handleClear}
+            className="w-full justify-start hover:bg-accent/50"
+          >
+            <Eraser className="h-4 w-4 mr-2" />
             Clear
           </Button>
         </SidebarFooter>
       </Sidebar>
 
       {/* Main writing area */}
-      <div className="w-full flex flex-col">
-        <header className={`p-4 flex items-center justify-between transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
+      <div className="w-full flex flex-col relative">
+        {/* Minimalist header with fade on distraction free */}
+        <header className={`absolute top-0 left-0 right-0 z-10 px-6 py-4 flex items-center justify-between backdrop-blur-sm bg-background/80 transition-all duration-500 ${distractionFree ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="hover:bg-accent/50" />
+            <h1 className="text-base font-medium tracking-wide text-foreground/80">FlowWrite</h1>
+          </div>
           <div className="flex items-center gap-2">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold tracking-tight">FlowWrite</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDarkMode}
+              className="h-8 w-8 p-0 hover:bg-accent/50"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
           </div>
         </header>
-        <div className={`flex-1 flex items-stretch justify-center p-8 transition-colors duration-300`}>
-          <div className={`w-full paper-container ${paperStyle} flex flex-col`}>
-            {/* Subtle timestamp */}
-            <div className={`text-xs mb-4 text-foreground/60 transition-all duration-300 ${distractionFree ? 'opacity-0' : ''}`}>
+
+        {/* Main writing canvas with generous padding */}
+        <div className={`flex-1 flex items-center justify-center px-4 sm:px-8 py-20 sm:py-24 transition-all duration-500`}>
+          <div className={`w-full max-w-4xl paper-container paper-${paperStyle} flex flex-col px-8 sm:px-12 md:px-16 py-8 sm:py-10 md:py-12 min-h-[500px] sm:min-h-[600px] shadow-sm animate-fade-in`}>
+            {/* Elegant timestamp */}
+            <div className={`text-xs mb-6 sm:mb-8 text-muted-foreground/70 font-light tracking-wide transition-all duration-500 ${distractionFree ? 'opacity-0' : 'opacity-100'}`}>
               {displayDate.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
@@ -681,8 +706,8 @@ export default function WritingApp() {
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
               onChange={handleContentChange}
-              placeholder={content === "" ? "Begin writing" : ""}
-              className={`w-full flex-1 p-2 bg-transparent focus:outline-none resize-none overflow-y-auto ${isShaking ? 'animate-shake' : ''}`}
+              placeholder={content === "" ? "Begin writing..." : ""}
+              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-relaxed placeholder:text-muted-foreground/40 placeholder:font-light ${isShaking ? 'animate-shake' : ''}`}
               style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: getFontFamily(fontFamily),
@@ -692,15 +717,13 @@ export default function WritingApp() {
           </div>
         </div>
 
-        {/* Bottom controls */}
-        <div className={`border-t p-2 sm:p-3 border-border`}>
-          <div className="max-w-4xl mx-auto flex items-center justify-between text-sm">
-            {/* Left Section */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        {/* Refined bottom controls - cleaner and more spacious */}
+        <div className={`border-t border-border/50 backdrop-blur-sm bg-background/95 transition-all duration-500 ${distractionFree ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            {/* Left Section - Style Controls */}
+            <div className="flex items-center gap-3 flex-shrink-0">
               <Select value={fontSize} onValueChange={setFontSize}>
-                <SelectTrigger
-                  className={`w-14 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
+                <SelectTrigger className="w-16 h-9 border-border/50 shadow-none text-xs hover:bg-accent/50 hover:border-border transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -708,14 +731,13 @@ export default function WritingApp() {
                   <SelectItem value="16">16px</SelectItem>
                   <SelectItem value="18">18px</SelectItem>
                   <SelectItem value="20">20px</SelectItem>
+                  <SelectItem value="22">22px</SelectItem>
                   <SelectItem value="24">24px</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={fontFamily} onValueChange={setFontFamily}>
-                <SelectTrigger
-                  className={`w-18 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
+                <SelectTrigger className="w-28 h-9 border-border/50 shadow-none text-xs hover:bg-accent/50 hover:border-border transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -724,14 +746,11 @@ export default function WritingApp() {
                   <SelectItem value="arial">Arial</SelectItem>
                   <SelectItem value="lato">Lato</SelectItem>
                   <SelectItem value="kalam">Handwritten</SelectItem>
-                  <SelectItem value="random">Random</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={paperStyle} onValueChange={setPaperStyle}>
-                <SelectTrigger
-                  className={`w-24 h-7 border-none shadow-none text-xs bg-background text-foreground transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
-                >
+                <SelectTrigger className="w-28 h-9 border-border/50 shadow-none text-xs hover:bg-accent/50 hover:border-border transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -742,77 +761,88 @@ export default function WritingApp() {
               </Select>
             </div>
 
-            {/* Center Section */}
-            <div className="flex-grow flex justify-center items-center gap-x-2 text-xs text-gray-400 min-w-0 mx-2 sm:mx-4">
-              <span key={`counts-${wordCount}-${charCount}`} className="animate-subtle-scale-fade whitespace-nowrap">
-                {wordCount} words, {charCount} chars
+            {/* Center Section - Stats */}
+            <div className="flex-grow flex justify-center items-center gap-4 text-xs text-muted-foreground min-w-0">
+              <span className="whitespace-nowrap font-medium">
+                {wordCount} words
               </span>
-              <span key={`wpm-${wpm}`} className="animate-subtle-scale-fade whitespace-nowrap">
+              <span className="text-border">·</span>
+              <span className="whitespace-nowrap font-medium">
+                {charCount} chars
+              </span>
+              <span className="text-border">·</span>
+              <span className="whitespace-nowrap font-medium">
                 {wpm} WPM
               </span>
-              {isSaving && <span className="text-blue-500 animate-fade-in-slide-in whitespace-nowrap">Saving...</span>}
+              {isSaving && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="text-primary/70 animate-pulse-gentle whitespace-nowrap">Saving...</span>
+                </>
+              )}
               {lastSaved && !isSaving && (
-                <span className={"text-green-500 dark:text-green-400 animate-fade-in-slide-in whitespace-nowrap"}>
-                  Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+                <>
+                  <span className="text-border">·</span>
+                  <span className="text-primary/60 whitespace-nowrap">
+                    Saved {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </>
               )}
             </div>
 
-            {/* Right Section */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (isTimerRunning) {
-                    setTimerManuallyPaused(true);
-                  } else {
-                    setTimerManuallyPaused(false);
-                  }
-                  setIsTimerRunning(!isTimerRunning);
-                }}
-                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-              >
-                {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-              </Button>
-              <span className={`font-mono text-base font-medium text-foreground`}>
-                {formatTime(timeLeft)}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetTimer}
-                className={`h-7 px-2 text-foreground hover:bg-accent transition-transform duration-150 ease-in-out hover:scale-110 active:scale-90`}
-              >
-                <RotateCcw className="w-3 h-3" />
-              </Button>
+            {/* Right Section - Timer & Actions */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/30 border border-border/50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (isTimerRunning) {
+                      setTimerManuallyPaused(true);
+                    } else {
+                      setTimerManuallyPaused(false);
+                    }
+                    setIsTimerRunning(!isTimerRunning);
+                  }}
+                  className="h-7 w-7 p-0 hover:bg-background/50"
+                >
+                  {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                </Button>
+                <span className="font-mono text-sm font-medium min-w-[3rem] text-center">
+                  {formatTime(timeLeft)}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetTimer}
+                  className="h-7 w-7 p-0 hover:bg-background/50"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </Button>
+              </div>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-7 px-2 text-muted-foreground hover:bg-accent flex-shrink-0 transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95`}
+                    className="h-9 w-9 p-0 hover:bg-accent/50"
                     aria-label="Actions"
                   >
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={newEntry} className="gap-2">
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={newEntry} className="gap-2 cursor-pointer">
                     <Plus className="w-4 h-4" />
                     <span>New Entry</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="gap-2">
+                  <DropdownMenuItem onClick={handleExport} className="gap-2 cursor-pointer">
                     <FileText className="w-4 h-4" />
                     <span>Export Session</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleDarkMode} className="gap-2">
-                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                    <span>{theme === 'dark' ? "Light Mode" : "Dark Mode"}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2">
+                  <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2 cursor-pointer">
                     <Type className="w-4 h-4" />
                     <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
                   </DropdownMenuItem>
@@ -820,60 +850,28 @@ export default function WritingApp() {
                     const newMode = !isNoDeleteMode;
                     setIsNoDeleteMode(newMode);
                     toast({
-                      title: newMode ? "Deletion is off" : "Deletion is on", // Concise titles
-                      className: "tooltip-like-toast", // Apply tooltip style
+                      title: newMode ? "Deletion is off" : "Deletion is on",
+                      className: "tooltip-like-toast",
                       variant: newMode ? "destructive" : "default",
                     });
-                  }} className="gap-2">
+                  }} className="gap-2 cursor-pointer">
                     <Eraser className="w-4 h-4" />
                     <span>{isNoDeleteMode ? "Enable" : "Disable"} Deleting</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={toggleFullscreen} className="gap-2">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={toggleFullscreen} className="gap-2 cursor-pointer">
                     <Maximize className="w-4 h-4" />
                     <span>Fullscreen</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDistractionFree(!distractionFree)} className="gap-2 cursor-pointer">
+                    {distractionFree ? <Minimize className="w-4 h-4" /> : <AlignVerticalJustifyCenter className="w-4 h-4" />}
+                    <span>{distractionFree ? "Show UI" : "Focus Mode"}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </div>
-
-        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none' : ''}`}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-foreground/60">
-                <span className="capitalize">{paperStyle}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setPaperStyle('default')}>Default</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPaperStyle('notebook')}>Notebook</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPaperStyle('handwritten')}>Handwritten</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-foreground/60">
-                <Type size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFontSize('16')}>16px</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFontSize('18')}>18px</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFontSize('20')}>20px</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="outline" size="sm" onClick={() => exportToFile(content, 'flow-write.txt')} className="text-foreground/60">
-            <Download size={16} />
-          </Button>
-        </div>
-
-        {/* Floating button to toggle distraction-free mode */}
-        <Button variant="outline" size="sm" onClick={() => setDistractionFree(!distractionFree)} className="text-foreground/60 absolute bottom-4 right-4">
-          {distractionFree ? <Minimize /> : <Maximize />}
-        </Button>
       </div>
     </div>
     <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>

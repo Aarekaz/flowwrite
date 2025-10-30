@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 @layer utilities {
@@ -14,73 +17,75 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    /* Warm, paper-like background with soft cream tone */
+    --background: 42 45% 97%;
+    --foreground: 30 15% 25%;
+    --card: 42 40% 98%;
+    --card-foreground: 30 15% 25%;
+    --popover: 42 40% 98%;
+    --popover-foreground: 30 15% 25%;
+    --primary: 30 25% 35%;
+    --primary-foreground: 42 50% 98%;
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 30 15% 25%;
+    --muted: 40 25% 90%;
+    --muted-foreground: 30 10% 50%;
+    --accent: 38 35% 88%;
+    --accent-foreground: 30 15% 25%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 42 50% 98%;
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 30 25% 35%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.75rem;
+    --sidebar-background: 40 35% 96%;
+    --sidebar-foreground: 30 15% 30%;
+    --sidebar-primary: 30 25% 35%;
+    --sidebar-primary-foreground: 42 50% 98%;
+    --sidebar-accent: 40 25% 92%;
+    --sidebar-accent-foreground: 30 15% 25%;
+    --sidebar-border: 40 15% 90%;
+    --sidebar-ring: 30 25% 35%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* Deep, warm dark mode inspired by night paper */
+    --background: 30 15% 10%;
+    --foreground: 40 20% 85%;
+    --card: 30 12% 12%;
+    --card-foreground: 40 20% 85%;
+    --popover: 30 12% 12%;
+    --popover-foreground: 40 20% 85%;
+    --primary: 40 25% 75%;
+    --primary-foreground: 30 15% 10%;
+    --secondary: 30 10% 18%;
+    --secondary-foreground: 40 20% 85%;
+    --muted: 30 8% 20%;
+    --muted-foreground: 40 10% 55%;
+    --accent: 30 12% 22%;
+    --accent-foreground: 40 20% 85%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 20% 95%;
+    --border: 30 8% 20%;
+    --input: 30 8% 20%;
+    --ring: 40 25% 75%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 30 12% 12%;
+    --sidebar-foreground: 40 15% 80%;
+    --sidebar-primary: 40 25% 75%;
+    --sidebar-primary-foreground: 30 15% 10%;
+    --sidebar-accent: 30 10% 18%;
+    --sidebar-accent-foreground: 40 20% 85%;
+    --sidebar-border: 30 8% 18%;
+    --sidebar-ring: 40 25% 75%;
   }
 }
 
@@ -93,6 +98,7 @@ body {
   }
 }
 
+/* Smooth, zen-like animations */
 @keyframes shake {
   0% { transform: translateX(0); }
   25% { transform: translateX(-2px); }
@@ -101,8 +107,41 @@ body {
   100% { transform: translateX(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .animate-shake {
   animation: shake 0.3s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-pulse-gentle {
+  animation: gentlePulse 2s ease-in-out infinite;
 }
 
 .tooltip-like-toast {
@@ -113,26 +152,99 @@ body {
   @apply font-medium;
 }
 
-/* Ensure the close button is still reasonably sized and positioned */
 .tooltip-like-toast button[aria-label="Close"] {
   @apply top-1 right-1 w-5 h-5;
 }
 
-.paper-notebook {
-  background-color: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #d4d4d8 25px);
-  background-size: 100% 25px;
-  background-position: 0 0;
-  background-repeat: repeat-y;
-  line-height: 25px !important;
-  padding-top: 5px;
-  padding-bottom: 5px;
+/* Enhanced paper styles with subtle textures */
+.paper-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dark .paper-notebook {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 24px, #4d4d4d 25px);
+.paper-default {
+  background-color: hsl(var(--background));
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+.paper-notebook {
+  background-color: hsl(var(--background));
+  background-image:
+    linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+    repeating-linear-gradient(to bottom, transparent, transparent 24px, hsl(var(--border)) 25px, hsl(var(--border)) 26px);
+  background-size: 100% 26px, 100% 26px;
+  background-position: 60px 0, 0 0;
+  line-height: 26px !important;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.05);
 }
 
 .paper-handwritten {
-  background-color: transparent;
+  background-color: hsl(var(--background));
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px hsla(var(--border), 0.3);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Remove transitions from textarea for better performance */
+textarea {
+  transition: none !important;
+}
+
+/* Custom scrollbar for zen aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Hide scrollbar for a cleaner look while maintaining functionality */
+.zen-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
+
+.zen-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.zen-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.zen-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+}
+
+/* Breathing animation for focus state */
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.focus-indicator {
+  animation: breathe 3s ease-in-out infinite;
 }

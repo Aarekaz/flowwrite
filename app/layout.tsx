@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  title: 'Flow Write',
-  description: 'A minimal app to just write. No distraction, fully local app to just write.',
+  title: 'FlowWrite - Zen Writing Experience',
+  description: 'A minimal, distraction-free writing app. Local-first, fast, and beautifully designed for focused writing.',
   creator: 'Anurag Dhungana',
 }
 
