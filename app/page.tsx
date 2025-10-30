@@ -10,15 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon, Minimize, FolderPlus, FilePlus } from "lucide-react"
+import { Maximize, Plus, Play, Pause, RotateCcw, Clock, AlignVerticalJustifyCenter, Download, MoreHorizontal, Sun, Moon, Type, FileText, Eraser, Folder as FolderIcon, FolderOpen as FolderOpenIcon, Minimize, FolderPlus, FilePlus, Command, Trash2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/components/ui/use-toast"
 import { exportToFile } from "@/lib/exportUtils"
 import { Tree, Folder, File } from "@/components/magicui/file-tree"
 import { Kalam } from 'next/font/google';
-import { Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarFooter, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { type TreeViewElement } from "@/components/magicui/file-tree";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const kalam = Kalam({
   subsets: ['latin'],
@@ -96,6 +96,20 @@ export default function WritingApp() {
   const [selectedId, setSelectedId] = useState<string | undefined>("2");
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
+  const [isFilesDialogOpen, setIsFilesDialogOpen] = useState(false);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+
+  // Keyboard shortcut for opening files dialog (Cmd/Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsFilesDialogOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Load content from localStorage on mount
   useEffect(() => {
@@ -550,6 +564,22 @@ export default function WritingApp() {
     });
   };
 
+  const handleClearAll = () => {
+    // Clear all files and content
+    setFiles(initialFiles);
+    setFileContents(initialContents);
+    setSelectedId("2");
+    setContent(initialContents["2"]);
+    localStorage.removeItem('flow-write-files');
+    localStorage.removeItem('flow-write-file-contents');
+    localStorage.removeItem('flow-write-content');
+    setShowClearAllDialog(false);
+    toast({
+      title: "All Content Cleared",
+      description: "All files and content have been reset.",
+    });
+  };
+
   const handleNewFile = () => {
     const newFile: TreeViewElement = {
       id: Date.now().toString(),
@@ -609,66 +639,22 @@ export default function WritingApp() {
   };
 
   return (
-    <SidebarProvider>
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
-      {/* Elegant sidebar with refined aesthetics */}
-      <Sidebar className="border-r border-border/50 backdrop-blur-xl">
-        <SidebarHeader className="border-b border-border/50 px-5 py-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground tracking-[0.15em] uppercase">Files</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNewFile}
-              className="h-8 w-8 hover:bg-accent/60 transition-all rounded-lg"
-            >
-              <FilePlus className="h-4 w-4" />
-            </Button>
-          </div>
-        </SidebarHeader>
-        <SidebarContent className="px-3">
-          <Tree
-            className="p-2"
-            elements={files}
-            initialSelectedId={selectedId}
-          >
-            {files.map(element => (
-              <Folder key={element.id} element={element.name} value={element.id}>
-                {element.children?.map(file => (
-                  <File
-                    key={file.id}
-                    value={file.id}
-                    handleSelect={() => setSelectedId(file.id)}
-                    onDelete={() => setFileToDelete(file.id)}
-                    onStartRename={() => setFileToRename(file.id)}
-                    onRename={(id, newName) => handleRenameFile(id, newName)}
-                    isRenaming={fileToRename === file.id}
-                  >
-                    {file.name}
-                  </File>
-                ))}
-              </Folder>
-            ))}
-          </Tree>
-        </SidebarContent>
-        <SidebarFooter className="border-t border-border/50 p-4">
-          <Button
-            variant="ghost"
-            onClick={handleClear}
-            className="w-full justify-start hover:bg-accent/60 text-xs rounded-lg transition-all"
-          >
-            <Eraser className="h-4 w-4 mr-2" />
-            Clear Content
-          </Button>
-        </SidebarFooter>
-      </Sidebar>
-
       {/* Revolutionary immersive writing space */}
       <div className="w-full flex flex-col relative group">
         {/* Sophisticated floating header - gracefully appears on hover */}
         <header className={`fixed top-0 left-0 right-0 z-30 px-10 py-6 flex items-center justify-between transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-2'}`}>
           <div className="flex items-center gap-6 backdrop-blur-2xl bg-card/70 px-6 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
-            <SidebarTrigger className="hover:bg-accent/50 transition-all rounded-lg" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFilesDialogOpen(true)}
+              className="h-9 px-3 hover:bg-accent/50 transition-all rounded-lg flex items-center gap-2"
+              title="Files (⌘K)"
+            >
+              <Command className="h-4 w-4 opacity-70" />
+              <span className="text-xs font-medium tracking-[0.15em] text-foreground/70 uppercase">Files</span>
+            </Button>
             <h1 className="text-sm font-medium tracking-[0.25em] text-foreground/70 uppercase">Flow</h1>
           </div>
           <div className="flex items-center gap-3 backdrop-blur-2xl bg-card/70 px-4 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
@@ -682,6 +668,19 @@ export default function WritingApp() {
             </Button>
           </div>
         </header>
+
+        {/* Minimal floating clear all button - appears on hover */}
+        <div className={`fixed bottom-24 right-8 z-40 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowClearAllDialog(true)}
+            className="h-10 w-10 p-0 backdrop-blur-2xl bg-card/70 border border-border/40 hover:bg-destructive/10 hover:border-destructive/30 rounded-xl shadow-lg shadow-black/5 transition-all"
+            title="Clear All Content"
+          >
+            <Trash2 className="h-4 w-4 opacity-60" />
+          </Button>
+        </div>
 
         {/* Immersive writing canvas with stunning depth */}
         <div className="flex-1 flex items-center justify-center px-12 py-20 transition-all duration-700">
@@ -856,21 +855,89 @@ export default function WritingApp() {
           </div>
         </div>
       </div>
+
+      {/* Elegant Files Dialog */}
+      <Dialog open={isFilesDialogOpen} onOpenChange={setIsFilesDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl backdrop-blur-2xl bg-card/95 border-border/50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-medium tracking-[0.15em] uppercase text-foreground/80">Files</DialogTitle>
+          </DialogHeader>
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-medium text-muted-foreground tracking-[0.15em] uppercase">Projects</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewFile}
+                className="h-8 px-3 hover:bg-accent/60 transition-all rounded-lg text-xs"
+              >
+                <FilePlus className="h-4 w-4 mr-2" />
+                New File
+              </Button>
+            </div>
+            <div className="border border-border/40 rounded-2xl p-4 bg-background/40 max-h-[400px] overflow-y-auto zen-scroll">
+              <Tree
+                className="p-2"
+                elements={files}
+                initialSelectedId={selectedId}
+              >
+                {files.map(element => (
+                  <Folder key={element.id} element={element.name} value={element.id}>
+                    {element.children?.map(file => (
+                      <File
+                        key={file.id}
+                        value={file.id}
+                        handleSelect={() => {
+                          setSelectedId(file.id);
+                          setIsFilesDialogOpen(false);
+                        }}
+                        onDelete={() => setFileToDelete(file.id)}
+                        onStartRename={() => setFileToRename(file.id)}
+                        onRename={(id, newName) => handleRenameFile(id, newName)}
+                        isRenaming={fileToRename === file.id}
+                      >
+                        {file.name}
+                      </File>
+                    ))}
+                  </Folder>
+                ))}
+              </Tree>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete File Confirmation Dialog */}
+      <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Your file will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-xl">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear All Content Confirmation Dialog */}
+      <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all content?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset all files and content to their initial state. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearAll} className="rounded-xl bg-destructive hover:bg-destructive/90">Clear All</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-    <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
-      <AlertDialogContent className="rounded-2xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete this file?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. Your file will be permanently removed.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmDelete} className="rounded-xl">Delete</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-    </SidebarProvider>
   )
 }
