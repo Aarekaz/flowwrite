@@ -611,22 +611,22 @@ export default function WritingApp() {
   return (
     <SidebarProvider>
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
-      {/* Sidebar - refined and minimal */}
-      <Sidebar className="border-r border-border/30">
-        <SidebarHeader className="border-b border-border/30 px-4 py-4">
+      {/* Elegant sidebar with refined aesthetics */}
+      <Sidebar className="border-r border-border/50 backdrop-blur-xl">
+        <SidebarHeader className="border-b border-border/50 px-5 py-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-normal text-muted-foreground tracking-wider uppercase">Files</span>
+            <span className="text-xs font-medium text-muted-foreground tracking-[0.15em] uppercase">Files</span>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleNewFile}
-              className="h-7 w-7 hover:bg-accent/40 transition-all"
+              className="h-8 w-8 hover:bg-accent/60 transition-all rounded-lg"
             >
-              <FilePlus className="h-3.5 w-3.5" />
+              <FilePlus className="h-4 w-4" />
             </Button>
           </div>
         </SidebarHeader>
-        <SidebarContent className="px-2">
+        <SidebarContent className="px-3">
           <Tree
             className="p-2"
             elements={files}
@@ -651,45 +651,45 @@ export default function WritingApp() {
             ))}
           </Tree>
         </SidebarContent>
-        <SidebarFooter className="border-t border-border/30 p-3">
+        <SidebarFooter className="border-t border-border/50 p-4">
           <Button
             variant="ghost"
             onClick={handleClear}
-            className="w-full justify-start hover:bg-accent/40 text-xs"
+            className="w-full justify-start hover:bg-accent/60 text-xs rounded-lg transition-all"
           >
-            <Eraser className="h-3.5 w-3.5 mr-2" />
-            Clear
+            <Eraser className="h-4 w-4 mr-2" />
+            Clear Content
           </Button>
         </SidebarFooter>
       </Sidebar>
 
-      {/* Main writing area - fully zen */}
+      {/* Revolutionary immersive writing space */}
       <div className="w-full flex flex-col relative group">
-        {/* Ultra minimal header - only visible on hover */}
-        <header className={`fixed top-0 left-0 right-0 z-20 px-8 py-5 flex items-center justify-between transition-all duration-700 ${distractionFree ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className="hover:bg-accent/30 transition-all" />
-            <h1 className="text-sm font-light tracking-[0.2em] text-foreground/60 uppercase">FlowWrite</h1>
+        {/* Sophisticated floating header - gracefully appears on hover */}
+        <header className={`fixed top-0 left-0 right-0 z-30 px-10 py-6 flex items-center justify-between transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-2'}`}>
+          <div className="flex items-center gap-6 backdrop-blur-2xl bg-card/70 px-6 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
+            <SidebarTrigger className="hover:bg-accent/50 transition-all rounded-lg" />
+            <h1 className="text-sm font-medium tracking-[0.25em] text-foreground/70 uppercase">Flow</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 backdrop-blur-2xl bg-card/70 px-4 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className="h-9 w-9 p-0 hover:bg-accent/30 transition-all"
+              className="h-9 w-9 p-0 hover:bg-accent/50 transition-all rounded-lg"
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4 opacity-60" /> : <Moon className="h-4 w-4 opacity-60" />}
+              {theme === 'dark' ? <Sun className="h-4 w-4 opacity-70" /> : <Moon className="h-4 w-4 opacity-70" />}
             </Button>
           </div>
         </header>
 
-        {/* Main writing canvas - maximum breathing room */}
-        <div className="flex-1 flex items-center justify-center px-8 py-16 transition-all duration-700">
-          <div className={`w-full max-w-5xl paper-container paper-${paperStyle} flex flex-col px-16 md:px-24 lg:px-32 py-16 min-h-[70vh] animate-fade-in`}>
-            {/* Ultra minimal timestamp - fade on hover */}
-            <div className={`text-[10px] mb-12 text-muted-foreground/50 font-light tracking-[0.15em] uppercase transition-all duration-700 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-30'}`}>
+        {/* Immersive writing canvas with stunning depth */}
+        <div className="flex-1 flex items-center justify-center px-12 py-20 transition-all duration-700">
+          <div className={`w-full max-w-6xl paper-container paper-${paperStyle} flex flex-col px-20 md:px-28 lg:px-36 py-20 min-h-[75vh] animate-fade-in shadow-2xl shadow-black/5 rounded-3xl`}>
+            {/* Elegant timestamp with smooth transitions */}
+            <div className={`text-[11px] mb-16 text-muted-foreground/60 font-medium tracking-[0.2em] uppercase transition-all duration-500 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-40'}`}>
               {displayDate.toLocaleDateString("en-US", {
-                month: "short",
+                month: "long",
                 day: "numeric",
                 year: "numeric",
               })}
@@ -700,8 +700,8 @@ export default function WritingApp() {
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
               onChange={handleContentChange}
-              placeholder={content === "" ? "Begin writing..." : ""}
-              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[1.8] placeholder:text-muted-foreground/30 placeholder:font-light ${isShaking ? 'animate-shake' : ''}`}
+              placeholder={content === "" ? "Begin your journey..." : ""}
+              className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic ${isShaking ? 'animate-shake' : ''}`}
               style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: getFontFamily(fontFamily),
@@ -711,160 +711,163 @@ export default function WritingApp() {
           </div>
         </div>
 
-        {/* Bottom bar - ultra minimal, appears on hover */}
-        <div className={`fixed bottom-0 left-0 right-0 z-20 border-t border-border/20 backdrop-blur-md bg-background/90 transition-all duration-700 ${distractionFree ? 'opacity-0 pointer-events-none translate-y-full' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
-          <div className="max-w-7xl mx-auto px-8 py-3 flex items-center justify-between">
-            {/* Left - Minimal style controls */}
-            <div className="flex items-center gap-2">
-              <Select value={fontSize} onValueChange={setFontSize}>
-                <SelectTrigger className="w-14 h-8 border-0 bg-transparent shadow-none text-[11px] hover:bg-accent/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="14">14</SelectItem>
-                  <SelectItem value="16">16</SelectItem>
-                  <SelectItem value="18">18</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="22">22</SelectItem>
-                  <SelectItem value="24">24</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Luxurious floating bottom bar - appears elegantly on hover */}
+        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-8 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+          <div className="backdrop-blur-2xl bg-card/80 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 px-8 py-4 max-w-7xl mx-auto">
+            <div className="flex items-center justify-between gap-8">
+              {/* Refined style controls */}
+              <div className="flex items-center gap-3">
+                <Select value={fontSize} onValueChange={setFontSize}>
+                  <SelectTrigger className="w-16 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="14">14</SelectItem>
+                    <SelectItem value="16">16</SelectItem>
+                    <SelectItem value="18">18</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="22">22</SelectItem>
+                    <SelectItem value="24">24</SelectItem>
+                    <SelectItem value="26">26</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={fontFamily} onValueChange={setFontFamily}>
-                <SelectTrigger className="w-24 h-8 border-0 bg-transparent shadow-none text-[11px] hover:bg-accent/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="serif">Serif</SelectItem>
-                  <SelectItem value="arial">Arial</SelectItem>
-                  <SelectItem value="lato">Lato</SelectItem>
-                  <SelectItem value="kalam">Hand</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={fontFamily} onValueChange={setFontFamily}>
+                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="serif">Serif</SelectItem>
+                    <SelectItem value="arial">Arial</SelectItem>
+                    <SelectItem value="lato">Lato</SelectItem>
+                    <SelectItem value="kalam">Handwritten</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={paperStyle} onValueChange={setPaperStyle}>
-                <SelectTrigger className="w-24 h-8 border-0 bg-transparent shadow-none text-[11px] hover:bg-accent/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="notebook">Lines</SelectItem>
-                  <SelectItem value="handwritten">Plain</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Center - Refined stats */}
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60 font-light tracking-wide">
-              <span>{wordCount}w</span>
-              <span className="opacity-30">·</span>
-              <span>{charCount}c</span>
-              <span className="opacity-30">·</span>
-              <span>{wpm} wpm</span>
-              {isSaving && (
-                <>
-                  <span className="opacity-30">·</span>
-                  <span className="text-primary/50 animate-pulse-gentle">saving</span>
-                </>
-              )}
-            </div>
-
-            {/* Right - Minimal actions */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-accent/20">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (isTimerRunning) {
-                      setTimerManuallyPaused(true);
-                    } else {
-                      setTimerManuallyPaused(false);
-                    }
-                    setIsTimerRunning(!isTimerRunning);
-                  }}
-                  className="h-6 w-6 p-0 hover:bg-background/30"
-                >
-                  {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                </Button>
-                <span className="font-mono text-[11px] font-light min-w-[2.5rem] text-center opacity-70">
-                  {formatTime(timeLeft)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetTimer}
-                  className="h-6 w-6 p-0 hover:bg-background/30"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                </Button>
+                <Select value={paperStyle} onValueChange={setPaperStyle}>
+                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Modern</SelectItem>
+                    <SelectItem value="notebook">Notebook</SelectItem>
+                    <SelectItem value="handwritten">Classic</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              {/* Beautiful stats display */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground/70 font-medium tracking-wider px-6 py-2 bg-accent/30 rounded-xl">
+                <span className="tabular-nums">{wordCount} words</span>
+                <span className="opacity-40">•</span>
+                <span className="tabular-nums">{charCount} chars</span>
+                <span className="opacity-40">•</span>
+                <span className="tabular-nums">{wpm} wpm</span>
+                {isSaving && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="text-primary/60 animate-pulse-gentle">auto-saving</span>
+                  </>
+                )}
+              </div>
+
+              {/* Sophisticated action controls */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/40 border border-border/30">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-accent/20"
-                    aria-label="Menu"
+                    onClick={() => {
+                      if (isTimerRunning) {
+                        setTimerManuallyPaused(true);
+                      } else {
+                        setTimerManuallyPaused(false);
+                      }
+                      setIsTimerRunning(!isTimerRunning);
+                    }}
+                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
                   >
-                    <MoreHorizontal className="w-3.5 h-3.5" />
+                    {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem onClick={newEntry} className="gap-2 cursor-pointer text-xs py-2">
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>New</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="gap-2 cursor-pointer text-xs py-2">
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Export</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2 cursor-pointer text-xs py-2">
-                    <Type className="w-3.5 h-3.5" />
-                    <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    const newMode = !isNoDeleteMode;
-                    setIsNoDeleteMode(newMode);
-                    toast({
-                      title: newMode ? "Deletion off" : "Deletion on",
-                      className: "tooltip-like-toast",
-                      variant: newMode ? "destructive" : "default",
-                    });
-                  }} className="gap-2 cursor-pointer text-xs py-2">
-                    <Eraser className="w-3.5 h-3.5" />
-                    <span>{isNoDeleteMode ? "Enable" : "Disable"} Delete</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleFullscreen} className="gap-2 cursor-pointer text-xs py-2">
-                    <Maximize className="w-3.5 h-3.5" />
-                    <span>Fullscreen</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDistractionFree(!distractionFree)} className="gap-2 cursor-pointer text-xs py-2">
-                    {distractionFree ? <Minimize className="w-3.5 h-3.5" /> : <AlignVerticalJustifyCenter className="w-3.5 h-3.5" />}
-                    <span>{distractionFree ? "Show UI" : "Focus"}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <span className="font-mono text-xs font-medium min-w-[3rem] text-center opacity-80 tabular-nums">
+                    {formatTime(timeLeft)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetTimer}
+                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 hover:bg-accent/40 rounded-lg"
+                      aria-label="Menu"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={newEntry} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Plus className="w-4 h-4" />
+                      <span>New Session</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExport} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <FileText className="w-4 h-4" />
+                      <span>Export</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setIsTypewriterMode(!isTypewriterMode)} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Type className="w-4 h-4" />
+                      <span>{isTypewriterMode ? "Disable" : "Enable"} Typewriter</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const newMode = !isNoDeleteMode;
+                      setIsNoDeleteMode(newMode);
+                      toast({
+                        title: newMode ? "Deletion disabled" : "Deletion enabled",
+                        className: "tooltip-like-toast",
+                        variant: newMode ? "destructive" : "default",
+                      });
+                    }} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Eraser className="w-4 h-4" />
+                      <span>{isNoDeleteMode ? "Enable" : "Disable"} Delete</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={toggleFullscreen} className="gap-2 cursor-pointer text-sm py-2.5">
+                      <Maximize className="w-4 h-4" />
+                      <span>Fullscreen</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDistractionFree(!distractionFree)} className="gap-2 cursor-pointer text-sm py-2.5">
+                      {distractionFree ? <Minimize className="w-4 h-4" /> : <AlignVerticalJustifyCenter className="w-4 h-4" />}
+                      <span>{distractionFree ? "Show Interface" : "Focus Mode"}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>
-      <AlertDialogContent>
+      <AlertDialogContent className="rounded-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete file?</AlertDialogTitle>
+          <AlertDialogTitle>Delete this file?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your file.
+            This action cannot be undone. Your file will be permanently removed.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete} className="rounded-xl">Delete</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
