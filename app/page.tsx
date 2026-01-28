@@ -44,18 +44,10 @@ const initialFiles: TreeViewElement[] = [
   {
     id: "1",
     name: "Projects",
-    children: [
-      {
-        id: "2",
-        name: "example.txt",
-        children: [],
-      },
-    ],
+    children: [],
   },
 ];
-const initialContents = {
-  "2": "This is the content of example.txt"
-};
+const initialContents = {};
 
 export default function WritingApp() {
   const [content, setContent] = useState(INITIAL_CONTENT)
@@ -78,6 +70,8 @@ export default function WritingApp() {
   const [showSessionTooltip, setShowSessionTooltip] = useState<string | null>(null)
   const { theme, setTheme } = useTheme()
   const [wpm, setWpm] = useState(0)
+  const [peakWpm, setPeakWpm] = useState(0)
+  const [wordsPerHour, setWordsPerHour] = useState(0)
   const [isTypewriterMode, setIsTypewriterMode] = useState(false)
   const { toast } = useToast()
   const [isNoDeleteMode, setIsNoDeleteMode] = useState(true)
@@ -93,7 +87,7 @@ export default function WritingApp() {
   const [distractionFree, setDistractionFree] = useState(false);
   const [files, setFiles] = useState(initialFiles);
   const [fileContents, setFileContents] = useState<{ [key: string]: string }>(initialContents);
-  const [selectedId, setSelectedId] = useState<string | undefined>("2");
+  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const [isFilesDialogOpen, setIsFilesDialogOpen] = useState(false);
@@ -298,6 +292,12 @@ export default function WritingApp() {
     return () => clearInterval(interval)
   }, [isTimerRunning, timeLeft])
 
+  // Update word and char count whenever content changes
+  useEffect(() => {
+    setWordCount(calculateWordCount(content))
+    setCharCount(content.length)
+  }, [content])
+
   // Auto-start timer when user starts typing
   useEffect(() => {
     if (content.length > 0 && !isTimerRunning && timeLeft > 0 && !timerManuallyPaused) {
@@ -305,17 +305,32 @@ export default function WritingApp() {
     }
   }, [content, isTimerRunning, timeLeft, timerManuallyPaused]);
 
-  // Calculate WPM
+  // Calculate WPM and enhanced stats
   useEffect(() => {
     const initialDurationSeconds = 15 * 60; // Default 15 minutes
     const elapsedSeconds = initialDurationSeconds - timeLeft;
     if (elapsedSeconds > 0 && wordCount > 0) {
       const elapsedMinutes = elapsedSeconds / 60;
-      setWpm(Math.round(wordCount / elapsedMinutes));
+      const currentWpm = Math.round(wordCount / elapsedMinutes);
+      setWpm(currentWpm);
+
+      // Update peak WPM
+      if (currentWpm > peakWpm) {
+        setPeakWpm(currentWpm);
+      }
+
+      // Calculate words per hour projection
+      const wordsPerHourProjection = Math.round(wordCount / elapsedMinutes * 60);
+      setWordsPerHour(wordsPerHourProjection);
     } else {
       setWpm(0);
+      if (elapsedSeconds === 0) {
+        // Reset all stats when timer is reset
+        setPeakWpm(0);
+        setWordsPerHour(0);
+      }
     }
-  }, [wordCount, timeLeft]);
+  }, [wordCount, timeLeft, peakWpm]);
 
   // Typewriter Mode Logic
   useEffect(() => {
@@ -409,6 +424,8 @@ export default function WritingApp() {
     setTimeLeft(15 * 60)
     setIsTimerRunning(false)
     setTimerManuallyPaused(false)
+    setPeakWpm(0)
+    setWordsPerHour(0)
   }
 
   const saveCurrentSession = () => {
@@ -536,7 +553,7 @@ export default function WritingApp() {
     if (isNoDeleteMode && (e.key === "Backspace" || e.key === "Delete")) {
       e.preventDefault()
       setIsShaking(true)
-      setTimeout(() => setIsShaking(false), 300) // Duration of the shake animation
+      setTimeout(() => setIsShaking(false), 400) // Duration of the shake animation
       toast({
         title: "Deletion is off", // Simplified title
         variant: "destructive",
@@ -546,13 +563,39 @@ export default function WritingApp() {
   }
 
   const handleBeforeInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const event = e as unknown as InputEvent; // Cast to InputEvent
-    if (isNoDeleteMode && event.inputType === "insertReplacementText") {
-      event.preventDefault();
+    const event = e.nativeEvent as InputEvent;
+
+    const isDeletion =
+      event.inputType === "deleteContentBackward" ||
+      event.inputType === "deleteContentForward";
+
+    const isReplacingSelection =
+      event.inputType.startsWith("insert") &&
+      textareaRef.current &&
+      textareaRef.current.selectionStart !== textareaRef.current.selectionEnd;
+
+    if (
+      isNoDeleteMode &&
+      (isDeletion || isReplacingSelection || event.inputType === "insertReplacementText")
+    ) {
+      e.preventDefault();
       setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 300);
+      setTimeout(() => setIsShaking(false), 400);
       toast({
         title: "Deletion is off", // Simplified title
+        variant: "destructive",
+        className: "tooltip-like-toast",
+      });
+    }
+  };
+
+  const handleCut = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (isNoDeleteMode) {
+      e.preventDefault();
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 400);
+      toast({
+        title: "Deletion is off",
         variant: "destructive",
         className: "tooltip-like-toast",
       });
@@ -579,8 +622,8 @@ export default function WritingApp() {
     // Clear all files and content
     setFiles(initialFiles);
     setFileContents(initialContents);
-    setSelectedId("2");
-    setContent(initialContents["2"]);
+    setSelectedId(undefined);
+    setContent('');
     localStorage.removeItem('flow-write-files');
     localStorage.removeItem('flow-write-file-contents');
     localStorage.removeItem('flow-write-content');
@@ -653,29 +696,29 @@ export default function WritingApp() {
     <div className={`min-h-screen flex relative ${kalam.variable}`}>
       {/* Revolutionary immersive writing space */}
       <div className="w-full flex flex-col relative group">
-        {/* Sophisticated floating header - gracefully appears on hover */}
-        <header className={`fixed top-0 left-0 right-0 z-30 px-10 py-6 flex items-center justify-between transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-2'}`}>
-          <div className="flex items-center gap-6 backdrop-blur-2xl bg-card/70 px-6 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
+        {/* Minimal floating header */}
+        <header className={`fixed top-0 left-0 right-0 z-30 px-8 py-5 flex items-center justify-between transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-2' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-1'}`}>
+          <div className="flex items-center gap-4 backdrop-blur-lg bg-card/60 px-5 py-2.5 rounded-xl border border-border/30">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsFilesDialogOpen(true)}
-              className="h-9 px-3 hover:bg-accent/50 transition-all rounded-lg flex items-center gap-2"
+              className="h-8 px-2.5 hover:bg-accent/40 transition-all rounded-lg flex items-center gap-1.5"
               title="Files (⌘K)"
             >
-              <Command className="h-4 w-4 opacity-70" />
-              <span className="text-xs font-medium tracking-[0.15em] text-foreground/70 uppercase">Files</span>
+              <Command className="h-3.5 w-3.5 opacity-60" />
+              <span className="text-[10px] font-light tracking-[0.2em] text-foreground/60 uppercase">Files</span>
             </Button>
-            <h1 className="text-sm font-medium tracking-[0.25em] text-foreground/70 uppercase">Flow</h1>
+            <h1 className="text-xs font-light tracking-[0.3em] text-foreground/50 uppercase">Flow</h1>
           </div>
-          <div className="flex items-center gap-3 backdrop-blur-2xl bg-card/70 px-4 py-3 rounded-2xl border border-border/40 shadow-lg shadow-black/5">
+          <div className="backdrop-blur-lg bg-card/60 px-3 py-2.5 rounded-xl border border-border/30">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className="h-9 w-9 p-0 hover:bg-accent/50 transition-all rounded-lg"
+              className="h-8 w-8 p-0 hover:bg-accent/40 transition-all rounded-lg"
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4 opacity-70" /> : <Moon className="h-4 w-4 opacity-70" />}
+              {theme === 'dark' ? <Sun className="h-3.5 w-3.5 opacity-60" /> : <Moon className="h-3.5 w-3.5 opacity-60" />}
             </Button>
           </div>
         </header>
@@ -693,11 +736,11 @@ export default function WritingApp() {
           </Button>
         </div>
 
-        {/* Immersive writing canvas with stunning depth */}
-        <div className="flex-1 flex items-center justify-center px-12 py-20 transition-all duration-700">
-          <div className={`w-full max-w-6xl paper-container paper-${paperStyle} flex flex-col px-20 md:px-28 lg:px-36 py-20 min-h-[75vh] animate-fade-in shadow-2xl shadow-black/5 rounded-3xl`}>
-            {/* Elegant timestamp with smooth transitions */}
-            <div className={`text-[11px] mb-16 text-muted-foreground/60 font-medium tracking-[0.2em] uppercase transition-all duration-500 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-40'}`}>
+        {/* Clean writing canvas */}
+        <div className="flex-1 flex items-center justify-center px-8 py-16 transition-all duration-500">
+          <div className={`w-full max-w-5xl paper-container paper-${paperStyle} flex flex-col px-12 md:px-20 lg:px-32 py-16 min-h-[80vh]`}>
+            {/* Minimal timestamp */}
+            <div className={`text-[10px] mb-12 text-muted-foreground/50 font-light tracking-[0.3em] uppercase transition-all duration-300 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-30'}`}>
               {displayDate.toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
@@ -710,6 +753,7 @@ export default function WritingApp() {
               value={content}
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
+              onCut={handleCut}
               onChange={handleContentChange}
               placeholder={content === "" ? "Begin your journey..." : ""}
               className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic animate-content-fade ${isShaking ? 'animate-shake' : ''}`}
@@ -722,14 +766,14 @@ export default function WritingApp() {
           </div>
         </div>
 
-        {/* Luxurious floating bottom bar - appears elegantly on hover */}
-        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-8 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
-          <div className="backdrop-blur-2xl bg-card/80 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 px-8 py-4 max-w-7xl mx-auto">
+        {/* Minimal floating bottom bar */}
+        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-6 transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+          <div className="backdrop-blur-lg bg-card/60 border border-border/30 rounded-xl px-6 py-3 max-w-6xl mx-auto">
             <div className="flex items-center justify-between gap-8">
-              {/* Refined style controls */}
-              <div className="flex items-center gap-3">
+              {/* Minimal style controls */}
+              <div className="flex items-center gap-2">
                 <Select value={fontSize} onValueChange={setFontSize}>
-                  <SelectTrigger className="w-16 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                  <SelectTrigger className="w-14 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -744,7 +788,7 @@ export default function WritingApp() {
                 </Select>
 
                 <Select value={fontFamily} onValueChange={setFontFamily}>
-                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -757,7 +801,7 @@ export default function WritingApp() {
                 </Select>
 
                 <Select value={paperStyle} onValueChange={setPaperStyle}>
-                  <SelectTrigger className="w-28 h-9 border border-border/40 bg-background/60 shadow-sm text-xs hover:bg-accent/30 rounded-lg transition-all">
+                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -768,27 +812,39 @@ export default function WritingApp() {
                 </Select>
               </div>
 
-              {/* Beautiful stats display */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground/70 font-medium tracking-wider px-6 py-2 bg-accent/30 rounded-xl">
-                <span className="tabular-nums">{wordCount} words</span>
-                <span className="opacity-40">•</span>
-                <span className="tabular-nums">{charCount} chars</span>
-                <span className="opacity-40">•</span>
-                <span className="tabular-nums">{wpm} wpm</span>
+              {/* Clean stats display */}
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60 font-light tracking-wide px-5 py-2.5 bg-card/40 backdrop-blur-sm rounded-xl border border-border/20">
+                <span className="tabular-nums"><span className="font-medium">{wordCount}</span> <span className="opacity-50">words</span></span>
+                <span className="opacity-30">·</span>
+                <span className="tabular-nums"><span className="font-medium">{charCount}</span> <span className="opacity-50">chars</span></span>
+                <span className="opacity-30">·</span>
+                <span className="tabular-nums"><span className="font-medium">{wpm}</span> <span className="opacity-50">wpm</span></span>
+                {peakWpm > 0 && (
+                  <>
+                    <span className="opacity-30">·</span>
+                    <span className="tabular-nums text-foreground/70"><span className="font-medium">⚡{peakWpm}</span> <span className="opacity-50">peak</span></span>
+                  </>
+                )}
+                {wordsPerHour > 0 && (
+                  <>
+                    <span className="opacity-30">·</span>
+                    <span className="tabular-nums opacity-50">{wordsPerHour.toLocaleString()}/h</span>
+                  </>
+                )}
                 {isSaving && (
                   <>
-                    <span className="opacity-40">•</span>
-                    <span className="text-primary animate-pulse-gentle flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse-gentle"></span>
-                      saving
+                    <span className="opacity-30">·</span>
+                    <span className="text-muted-foreground/50 animate-pulse-gentle flex items-center gap-1">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50"></span>
+                      save
                     </span>
                   </>
                 )}
               </div>
 
-              {/* Sophisticated action controls */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/40 border border-border/30">
+              {/* Minimal action controls */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/30 border border-border/20">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -800,20 +856,20 @@ export default function WritingApp() {
                       }
                       setIsTimerRunning(!isTimerRunning);
                     }}
-                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
+                    className="h-6 w-6 p-0 hover:bg-background/30 rounded"
                   >
-                    {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                    {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                   </Button>
-                  <span className="font-mono text-xs font-medium min-w-[3rem] text-center opacity-80 tabular-nums">
+                  <span className="font-mono text-[10px] font-light min-w-[2.5rem] text-center opacity-70 tabular-nums">
                     {formatTime(timeLeft)}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={resetTimer}
-                    className="h-7 w-7 p-0 hover:bg-background/40 rounded-lg"
+                    className="h-6 w-6 p-0 hover:bg-background/30 rounded"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="w-3 h-3" />
                   </Button>
                 </div>
 
@@ -822,10 +878,10 @@ export default function WritingApp() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 hover:bg-accent/40 rounded-lg"
+                      className="h-8 w-8 p-0 hover:bg-accent/30 rounded-lg"
                       aria-label="Menu"
                     >
-                      <MoreHorizontal className="w-4 h-4" />
+                      <MoreHorizontal className="w-3.5 h-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
