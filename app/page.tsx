@@ -553,7 +553,7 @@ export default function WritingApp() {
     if (isNoDeleteMode && (e.key === "Backspace" || e.key === "Delete")) {
       e.preventDefault()
       setIsShaking(true)
-      setTimeout(() => setIsShaking(false), 300) // Duration of the shake animation
+      setTimeout(() => setIsShaking(false), 400) // Duration of the shake animation
       toast({
         title: "Deletion is off", // Simplified title
         variant: "destructive",
@@ -563,13 +563,39 @@ export default function WritingApp() {
   }
 
   const handleBeforeInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const event = e as unknown as InputEvent; // Cast to InputEvent
-    if (isNoDeleteMode && event.inputType === "insertReplacementText") {
-      event.preventDefault();
+    const event = e.nativeEvent as InputEvent;
+
+    const isDeletion =
+      event.inputType === "deleteContentBackward" ||
+      event.inputType === "deleteContentForward";
+
+    const isReplacingSelection =
+      event.inputType.startsWith("insert") &&
+      textareaRef.current &&
+      textareaRef.current.selectionStart !== textareaRef.current.selectionEnd;
+
+    if (
+      isNoDeleteMode &&
+      (isDeletion || isReplacingSelection || event.inputType === "insertReplacementText")
+    ) {
+      e.preventDefault();
       setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 300);
+      setTimeout(() => setIsShaking(false), 400);
       toast({
         title: "Deletion is off", // Simplified title
+        variant: "destructive",
+        className: "tooltip-like-toast",
+      });
+    }
+  };
+
+  const handleCut = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (isNoDeleteMode) {
+      e.preventDefault();
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 400);
+      toast({
+        title: "Deletion is off",
         variant: "destructive",
         className: "tooltip-like-toast",
       });
@@ -727,6 +753,7 @@ export default function WritingApp() {
               value={content}
               onKeyDown={handleTextareaKeyDown}
               onBeforeInput={handleBeforeInput}
+              onCut={handleCut}
               onChange={handleContentChange}
               placeholder={content === "" ? "Begin your journey..." : ""}
               className={`w-full flex-1 bg-transparent focus:outline-none resize-none overflow-y-auto zen-scroll leading-[2] placeholder:text-muted-foreground/40 placeholder:font-light placeholder:italic animate-content-fade ${isShaking ? 'animate-shake' : ''}`}
