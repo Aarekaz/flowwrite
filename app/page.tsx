@@ -78,6 +78,9 @@ export default function WritingApp() {
   const [showSessionTooltip, setShowSessionTooltip] = useState<string | null>(null)
   const { theme, setTheme } = useTheme()
   const [wpm, setWpm] = useState(0)
+  const [peakWpm, setPeakWpm] = useState(0)
+  const [wordsPerHour, setWordsPerHour] = useState(0)
+  const [writingStreak, setWritingStreak] = useState(0) // in minutes
   const [isTypewriterMode, setIsTypewriterMode] = useState(false)
   const { toast } = useToast()
   const [isNoDeleteMode, setIsNoDeleteMode] = useState(true)
@@ -305,15 +308,40 @@ export default function WritingApp() {
     }
   }, [content, isTimerRunning, timeLeft, timerManuallyPaused]);
 
-  // Calculate WPM
+  // Calculate WPM and enhanced stats
   useEffect(() => {
     const initialDurationSeconds = 15 * 60; // Default 15 minutes
     const elapsedSeconds = initialDurationSeconds - timeLeft;
     if (elapsedSeconds > 0 && wordCount > 0) {
       const elapsedMinutes = elapsedSeconds / 60;
-      setWpm(Math.round(wordCount / elapsedMinutes));
+      const currentWpm = Math.round(wordCount / elapsedMinutes);
+      setWpm(currentWpm);
+
+      // Update peak WPM
+      if (currentWpm > peakWpm) {
+        setPeakWpm(currentWpm);
+      }
+
+      // Calculate words per hour projection
+      const wordsPerHourProjection = Math.round(wordCount / elapsedMinutes * 60);
+      setWordsPerHour(wordsPerHourProjection);
+
+      // Calculate writing streak (consecutive minutes above 20 WPM threshold)
+      if (currentWpm >= 20) {
+        const currentStreak = Math.floor(elapsedMinutes);
+        setWritingStreak(currentStreak);
+      } else if (elapsedMinutes > 1) {
+        // Only reset streak if we've been writing for more than a minute
+        setWritingStreak(0);
+      }
     } else {
       setWpm(0);
+      if (elapsedSeconds === 0) {
+        // Reset all stats when timer is reset
+        setPeakWpm(0);
+        setWordsPerHour(0);
+        setWritingStreak(0);
+      }
     }
   }, [wordCount, timeLeft]);
 
@@ -409,6 +437,9 @@ export default function WritingApp() {
     setTimeLeft(15 * 60)
     setIsTimerRunning(false)
     setTimerManuallyPaused(false)
+    setPeakWpm(0)
+    setWordsPerHour(0)
+    setWritingStreak(0)
   }
 
   const saveCurrentSession = () => {
@@ -769,12 +800,30 @@ export default function WritingApp() {
               </div>
 
               {/* Beautiful stats display */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground/70 font-medium tracking-wider px-6 py-2 bg-accent/30 rounded-xl">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground/70 font-medium tracking-wider px-6 py-2 bg-accent/30 rounded-xl">
                 <span className="tabular-nums">{wordCount} words</span>
                 <span className="opacity-40">•</span>
                 <span className="tabular-nums">{charCount} chars</span>
                 <span className="opacity-40">•</span>
                 <span className="tabular-nums">{wpm} wpm</span>
+                {peakWpm > 0 && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="tabular-nums text-primary/80">⚡ {peakWpm}</span>
+                  </>
+                )}
+                {wordsPerHour > 0 && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="tabular-nums opacity-60">{wordsPerHour.toLocaleString()}/hr</span>
+                  </>
+                )}
+                {writingStreak > 0 && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="tabular-nums text-orange-500/70">🔥 {writingStreak}min</span>
+                  </>
+                )}
                 {isSaving && (
                   <>
                     <span className="opacity-40">•</span>
