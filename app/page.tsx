@@ -697,13 +697,13 @@ export default function WritingApp() {
       {/* Revolutionary immersive writing space */}
       <div className="w-full flex flex-col relative group">
         {/* Minimal floating header */}
-        <header className={`fixed top-0 left-0 right-0 z-30 px-8 py-5 flex items-center justify-between transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-2' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-1'}`}>
+        <header className={`fixed top-0 left-0 right-0 z-30 px-8 py-5 flex items-center justify-between transition-[opacity,transform] duration-300 ${distractionFree ? 'opacity-0 pointer-events-none -translate-y-2' : 'opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-1'}`}>
           <div className="flex items-center gap-4 backdrop-blur-lg bg-card/60 px-5 py-2.5 rounded-xl border border-border/30">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsFilesDialogOpen(true)}
-              className="h-8 px-2.5 hover:bg-accent/40 transition-all rounded-lg flex items-center gap-1.5"
+              className="h-8 px-2.5 hover:bg-accent/40 transition-colors rounded-lg flex items-center gap-1.5"
               title="Files (⌘K)"
             >
               <Command className="h-3.5 w-3.5 opacity-60" />
@@ -716,7 +716,8 @@ export default function WritingApp() {
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className="h-8 w-8 p-0 hover:bg-accent/40 transition-all rounded-lg"
+              className="h-8 w-8 p-0 hover:bg-accent/40 transition-colors rounded-lg"
+              aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
             >
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5 opacity-60" /> : <Moon className="h-3.5 w-3.5 opacity-60" />}
             </Button>
@@ -724,23 +725,24 @@ export default function WritingApp() {
         </header>
 
         {/* Minimal floating clear all button - appears on hover */}
-        <div className={`fixed bottom-24 right-8 z-40 transition-all duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+        <div className={`fixed bottom-24 right-8 z-40 transition-[opacity,transform] duration-500 ease-out ${distractionFree ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowClearAllDialog(true)}
-            className="h-10 w-10 p-0 backdrop-blur-2xl bg-card/70 border border-border/40 hover:bg-destructive/10 hover:border-destructive/30 rounded-xl shadow-lg shadow-black/5 transition-all"
+            className="h-10 w-10 p-0 backdrop-blur-2xl bg-card/70 border border-border/40 hover:bg-destructive/10 hover:border-destructive/30 rounded-xl shadow-lg shadow-black/5 transition-colors"
             title="Clear All Content"
+            aria-label="Clear All Content"
           >
             <Trash2 className="h-4 w-4 opacity-60" />
           </Button>
         </div>
 
         {/* Clean writing canvas */}
-        <div className="flex-1 flex items-center justify-center px-8 py-16 transition-all duration-500">
+        <div className="flex-1 flex items-center justify-center px-8 py-16 duration-500">
           <div className={`w-full max-w-5xl paper-container paper-${paperStyle} flex flex-col px-12 md:px-20 lg:px-32 py-16 min-h-[80vh]`}>
             {/* Minimal timestamp */}
-            <div className={`text-[10px] mb-12 text-muted-foreground/50 font-light tracking-[0.3em] uppercase transition-all duration-300 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-30'}`}>
+            <div className={`text-[10px] mb-12 text-muted-foreground/50 font-light tracking-[0.3em] uppercase transition-opacity duration-300 ${distractionFree ? 'opacity-0' : 'opacity-100 group-hover:opacity-30'}`}>
               {displayDate.toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
@@ -767,13 +769,13 @@ export default function WritingApp() {
         </div>
 
         {/* Minimal floating bottom bar */}
-        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-6 transition-all duration-300 ${distractionFree ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center pb-6 transition-[opacity,transform] duration-300 ${distractionFree ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-0 group-hover:opacity-100 translate-y-0'}`}>
           <div className="backdrop-blur-lg bg-card/60 border border-border/30 rounded-xl px-6 py-3 max-w-6xl mx-auto">
             <div className="flex items-center justify-between gap-8">
               {/* Minimal style controls */}
               <div className="flex items-center gap-2">
                 <Select value={fontSize} onValueChange={setFontSize}>
-                  <SelectTrigger className="w-14 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
+                  <SelectTrigger className="w-14 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-colors">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -788,7 +790,7 @@ export default function WritingApp() {
                 </Select>
 
                 <Select value={fontFamily} onValueChange={setFontFamily}>
-                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
+                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-colors">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -801,7 +803,7 @@ export default function WritingApp() {
                 </Select>
 
                 <Select value={paperStyle} onValueChange={setPaperStyle}>
-                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-all">
+                  <SelectTrigger className="w-24 h-8 border border-border/30 bg-background/40 text-[11px] hover:bg-accent/20 rounded-lg transition-colors">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -857,6 +859,7 @@ export default function WritingApp() {
                       setIsTimerRunning(!isTimerRunning);
                     }}
                     className="h-6 w-6 p-0 hover:bg-background/30 rounded"
+                    aria-label={isTimerRunning ? "Pause Timer" : "Start Timer"}
                   >
                     {isTimerRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                   </Button>
@@ -868,6 +871,7 @@ export default function WritingApp() {
                     size="sm"
                     onClick={resetTimer}
                     className="h-6 w-6 p-0 hover:bg-background/30 rounded"
+                    aria-label="Reset Timer"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </Button>
@@ -940,7 +944,7 @@ export default function WritingApp() {
                 variant="ghost"
                 size="sm"
                 onClick={handleNewFile}
-                className="h-8 px-3 hover:bg-accent/60 transition-all rounded-lg text-xs"
+                className="h-8 px-3 hover:bg-accent/60 transition-colors rounded-lg text-xs"
               >
                 <FilePlus className="h-4 w-4 mr-2" />
                 New File
